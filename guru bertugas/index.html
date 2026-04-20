@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem e-Laporan Guru Bertugas</title>
+    <title>Sistem e-Laporan Guru Bertugas - SKPK Miri</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Tambah library html2pdf untuk muat turun PDF -->
+    <!-- Library untuk penjanaan PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         tailwind.config = {
@@ -66,7 +66,6 @@
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 0.875rem;
-            transition: all 0.3s;
             background-color: #f9fafb;
         }
 
@@ -82,13 +81,11 @@
             background-color: #f3f4f6;
             border-radius: 8px;
             padding: 0.25rem;
-            width: 100%;
         }
 
         .segmented-control label {
             flex: 1;
             text-align: center;
-            position: relative;
             cursor: pointer;
         }
 
@@ -103,7 +100,6 @@
             font-weight: 600;
             color: #6b7280;
             border-radius: 6px;
-            transition: all 0.2s;
         }
 
         .segmented-control input:checked + span {
@@ -112,14 +108,18 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .required { color: #ef4444; margin-left: 0.25rem; }
-
-        .time-slot {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 1rem;
-            border-left: 3px solid #3b82f6;
-            padding-left: 1rem;
+        .signature-container {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            background-color: #fff;
+            position: relative;
+            touch-action: none;
+        }
+        
+        canvas.signature-pad {
+            width: 100%;
+            height: 150px;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -128,9 +128,9 @@
     <header class="bg-primary text-white shadow-md sticky top-0 z-50">
         <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <img src="logo.png" alt="Logo SKPK Miri" class="h-12 w-12 md:h-14 md:w-14 object-contain bg-white rounded-full p-0.5 shadow-sm" onerror="this.onerror=null; this.src='https://placehold.co/100x100?text=SKPK';">
+                <div class="h-10 w-10 bg-white rounded-full flex items-center justify-center text-primary font-bold shadow-sm">SKPK</div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold leading-tight">Laporan Harian Guru Bertugas</h1>
+                    <h1 class="text-base md:text-lg font-bold leading-tight">e-Laporan Guru Bertugas</h1>
                     <p class="text-xs md:text-sm text-blue-200">SK Pendidikan Khas Miri</p>
                 </div>
             </div>
@@ -141,30 +141,33 @@
         
         <!-- VIEW: BORANG -->
         <div id="view-borang">
+            <div id="statusEdit" class="hidden mb-4 bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded text-yellow-700 font-bold flex justify-between items-center">
+                <span><i class="fas fa-edit mr-2"></i> Anda sedang mengemaskini rekod sedia ada.</span>
+                <button onclick="window.batalEdit()" class="text-xs bg-yellow-500 text-white px-2 py-1 rounded">Batal</button>
+            </div>
             <form id="eLaporanForm" onsubmit="window.hantarLaporan(event)">
 
-                <!-- 1. MAKLUMAT ASAS -->
                 <div class="section-card border-t-primary">
                     <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Maklumat Asas</h2>
                     
                     <div class="mb-4">
-                        <label class="form-label">Tarikh <span class="required">*</span></label>
+                        <label class="form-label">Tarikh <span class="text-red-500">*</span></label>
                         <input type="date" id="tarikh" required class="form-input" onchange="window.kemaskiniHari()">
                     </div>
                     <div class="mb-4">
-                        <label class="form-label">Hari <span class="required">*</span></label>
-                        <input type="text" id="hari" required readonly class="form-input bg-gray-100">
+                        <label class="form-label">Hari</label>
+                        <input type="text" id="hari" readonly class="form-input bg-gray-100">
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="form-label">Minggu Ke- <span class="required">*</span></label>
+                            <label class="form-label">Minggu Ke- <span class="text-red-500">*</span></label>
                             <input type="number" id="minggu" required min="1" max="52" class="form-input">
                         </div>
                         <div>
-                            <label class="form-label">Kumpulan Bertugas <span class="required">*</span></label>
+                            <label class="form-label">Kumpulan <span class="text-red-500">*</span></label>
                             <select id="kumpulan" required class="form-input">
-                                <option value="">-- Pilih Kumpulan --</option>
+                                <option value="">-- Pilih --</option>
                                 <option value="Kumpulan 1">Kumpulan 1</option>
                                 <option value="Kumpulan 2">Kumpulan 2</option>
                                 <option value="Kumpulan 3">Kumpulan 3</option>
@@ -175,696 +178,382 @@
                     </div>
                 </div>
 
-                <!-- 2. MAKLUMAT KEHADIRAN MURID -->
                 <div class="section-card border-t-accent">
-                    <h2 class="section-title"><i class="fas fa-user-graduate"></i> Maklumat Kehadiran Murid</h2>
-                    <div class="bg-red-50 text-red-700 p-3 rounded-lg border border-red-200 mb-4 text-sm flex gap-2">
-                        <i class="fas fa-exclamation-circle mt-0.5"></i>
-                        <p><strong>SILA ISI BILANGAN MURID TIDAK HADIR SAHAJA.</strong><br>Sistem akan mengira baki kehadiran dan peratusan secara automatik.</p>
-                    </div>
-
-                    <div id="senaraiKelasContainer" class="w-full">
-                        <!-- Senarai kelas akan di-generate menggunakan JavaScript di sini -->
-                    </div>
+                    <h2 class="section-title"><i class="fas fa-user-graduate"></i> Kehadiran Murid</h2>
+                    <div id="senaraiKelasContainer" class="overflow-x-auto"></div>
                 </div>
 
-                <!-- 3. LAPORAN HARIAN (KEBERSIHAN & DISIPLIN) -->
                 <div class="section-card border-t-blue-500">
                     <h2 class="section-title"><i class="fas fa-broom"></i> Kebersihan & Disiplin</h2>
-                    
-                    <h3 class="font-bold text-gray-800 mb-3 bg-gray-100 p-2 rounded">Kebersihan (Masa Akhir)</h3>
-                    <div id="senaraiKebersihan" class="space-y-3 mb-6">
-                        <!-- Jana guna JS -->
-                    </div>
-
-                    <h3 class="font-bold text-gray-800 mb-3 bg-gray-100 p-2 rounded">Disiplin Murid</h3>
-                    <textarea id="catatan_disiplin" rows="3" class="form-input" placeholder="Contoh: Disiplin murid dalam keadaan terkawal"></textarea>
+                    <div id="senaraiKebersihan" class="space-y-3 mb-6"></div>
+                    <label class="form-label">Catatan Disiplin Murid</label>
+                    <textarea id="catatan_disiplin" rows="3" class="form-input" placeholder="Contoh: Disiplin terkawal."></textarea>
                 </div>
 
-                <!-- 4. CATATAN PERISTIWA SEMASA -->
                 <div class="section-card border-t-yellow-500">
-                    <h2 class="section-title"><i class="fas fa-clock"></i> Catatan Penting Peristiwa Semasa</h2>
-                    
-                    <div class="time-slot">
-                        <label class="form-label text-blue-700">7.00 - 8.00 pagi</label>
-                        <textarea id="slot_1" rows="2" class="form-input" placeholder="- Program guru penyayang&#10;- Pengagihan susu..."></textarea>
-                    </div>
-                    <div class="time-slot">
-                        <label class="form-label text-blue-700">8.00 - 9.00 pagi</label>
-                        <textarea id="slot_2" rows="2" class="form-input" placeholder="- PdP seperti biasa"></textarea>
-                    </div>
-                    <div class="time-slot">
-                        <label class="form-label text-blue-700">9.00 - 10.00 pagi</label>
-                        <textarea id="slot_3" rows="2" class="form-input" placeholder="Menu RMT: ..."></textarea>
-                    </div>
-                    <div class="time-slot">
-                        <label class="form-label text-blue-700">10.00 - 11.00 pagi</label>
-                        <textarea id="slot_4" rows="2" class="form-input" placeholder="- PdP seperti biasa"></textarea>
-                    </div>
-                    <div class="time-slot">
-                        <label class="form-label text-blue-700">11.00 - 12.00 tengah hari</label>
-                        <textarea id="slot_5" rows="2" class="form-input" placeholder="- PdP seperti biasa"></textarea>
-                    </div>
-                    <div class="time-slot">
-                        <label class="form-label text-blue-700">12.00 - 1.00 tengah hari</label>
-                        <textarea id="slot_6" rows="2" class="form-input" placeholder=""></textarea>
-                    </div>
+                    <h2 class="section-title"><i class="fas fa-clock"></i> Catatan Peristiwa Semasa</h2>
+                    <div id="slotPeristiwa" class="space-y-4"></div>
                 </div>
 
-                <!-- 5. KEBERADAAN GURU & PENTADBIR -->
                 <div class="section-card border-t-purple-500">
-                    <h2 class="section-title"><i class="fas fa-chalkboard-teacher"></i> Keberadaan Guru & Pentadbir</h2>
-                    <p class="text-xs text-gray-500 mb-4">Rekodkan guru atau pentadbir yang tidak hadir berserta sebab (CRK/Kursus dll).</p>
-
-                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 mb-4">
-                        <div class="mb-3">
-                            <label class="form-label">Pilih Nama Staf</label>
-                            <select id="pilihGuru" class="form-input">
-                                <option value="">-- Pilih Nama Guru / Pentadbir --</option>
-                                <!-- Pilihan Jana Melalui JS -->
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Sebab Tidak Hadir</label>
-                            <select id="sebabTakHadir" class="form-input">
-                                <option value="">-- Pilih Sebab --</option>
-                                <option value="CRK">CRK</option>
-                                <option value="Kursus">Kursus</option>
-                                <option value="Bengkel">Bengkel</option>
-                                <option value="Cuti Sakit">Cuti Sakit</option>
-                                <option value="Cuti Bersalin">Cuti Bersalin</option>
-                                <option value="Tugas Luar">Tugas Luar / Mesyuarat</option>
-                                <option value="Lain-lain">Lain-lain</option>
-                            </select>
-                        </div>
-                        <button type="button" onclick="window.tambahGuruTakHadir()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
-                            <i class="fas fa-plus"></i> Tambah Rekod Staf
-                        </button>
+                    <h2 class="section-title"><i class="fas fa-chalkboard-teacher"></i> Keberadaan Staf</h2>
+                    <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                        <select id="pilihStaf" class="form-input mb-3"><option value="">-- Pilih Nama Staf --</option></select>
+                        <select id="sebabTakHadir" class="form-input mb-3">
+                            <option value="">-- Sebab --</option>
+                            <option value="CRK">CRK</option>
+                            <option value="Kursus">Kursus</option>
+                            <option value="Cuti Sakit">Cuti Sakit</option>
+                            <option value="Tugas Luar">Tugas Luar</option>
+                        </select>
+                        <button type="button" onclick="window.tambahStaf()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg">Tambah Staf</button>
                     </div>
-
-                    <div id="senaraiGuruTakHadir" class="space-y-2">
-                        <!-- Rekod masuk sini -->
-                    </div>
+                    <div id="displayStafTakHadir" class="space-y-2"></div>
                 </div>
 
-                <!-- 6. ULASAN & PENGESAHAN -->
                 <div class="section-card border-t-gray-800">
                     <h2 class="section-title"><i class="fas fa-pen-nib"></i> Ulasan & Pengesahan</h2>
+                    <textarea id="ulasan" rows="3" class="form-input mb-6" placeholder="Ulasan / Cadangan / Refleksi"></textarea>
                     
-                    <div class="mb-6">
-                        <label class="form-label">Ulasan / Cadangan / Refleksi</label>
-                        <textarea id="ulasan" rows="3" class="form-input" placeholder="- Murid diingatkan agar minum air yang mencukupi..."></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div class="grid grid-cols-1 gap-6">
                         <div>
-                            <label class="form-label">Dicatat Oleh (Nama Guru) <span class="required">*</span></label>
-                            <select id="namaPencatat" required class="form-input font-bold text-primary">
-                                <option value="">-- Pilih Nama Guru --</option>
-                                <!-- Pilihan Jana Melalui JS -->
-                            </select>
+                            <label class="form-label">Dicatat Oleh <span class="text-red-500">*</span></label>
+                            <select id="namaPencatat" required class="form-input mb-2"></select>
+                            <div class="signature-container"><canvas id="signPad1" class="signature-pad" width="600" height="300"></canvas></div>
+                            <button type="button" onclick="window.clearSignature('signPad1')" class="text-xs text-red-500 font-bold">Padam Tandatangan</button>
                         </div>
                         <div>
-                            <label class="form-label">Disemak Oleh (Pentadbir) <span class="required">*</span></label>
-                            <select id="namaPenyemak" required class="form-input font-bold text-accent">
-                                <option value="">-- Pilih Pentadbir --</option>
-                                <!-- Pilihan Jana Melalui JS -->
-                            </select>
+                            <label class="form-label">Disemak Oleh <span class="text-red-500">*</span></label>
+                            <select id="namaPenyemak" required class="form-input mb-2"></select>
+                            <div class="signature-container"><canvas id="signPad2" class="signature-pad" width="600" height="300"></canvas></div>
+                            <button type="button" onclick="window.clearSignature('signPad2')" class="text-xs text-red-500 font-bold">Padam Tandatangan</button>
                         </div>
                     </div>
-
-                    <button type="submit" class="w-full bg-primary hover:bg-blue-800 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition duration-200 flex justify-center items-center gap-2 text-lg">
-                        <i class="fas fa-paper-plane"></i> Hantar Rekod Laporan
-                    </button>
+                    <button type="submit" id="btnHantar" class="w-full bg-primary text-white font-bold py-4 mt-8 rounded-xl shadow-lg">Hantar Rekod Laporan</button>
                 </div>
-
             </form>
         </div>
 
         <!-- VIEW: REKOD -->
         <div id="view-rekod" class="hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-primary"><i class="fas fa-history mr-2"></i> Rekod Disimpan Bersama</h2>
-                <button type="button" onclick="window.paparRekod()" class="text-sm text-secondary hover:underline"><i class="fas fa-sync"></i> Segar Semula</button>
-            </div>
-            <div id="senaraiRekodContainer" class="space-y-4">
-                <!-- Senarai akan dijana di sini -->
-            </div>
+            <h2 class="text-xl font-bold text-primary mb-4">Rekod Laporan Awan</h2>
+            <div id="containerRekod" class="space-y-4"></div>
         </div>
-
     </main>
 
-    <!-- NAVIGASI BAWAH -->
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] pb-safe">
-        <div class="max-w-2xl w-full mx-auto flex justify-around">
-            <button type="button" id="tab-borang" onclick="window.tukarTab('borang')" class="flex-1 py-3 text-center text-primary border-t-2 border-primary transition flex flex-col items-center bg-blue-50/30">
-                <i class="fas fa-edit text-xl mb-1"></i>
-                <span class="text-xs font-semibold">Isi Laporan</span>
-            </button>
-            <button type="button" id="tab-rekod" onclick="window.tukarTab('rekod')" class="flex-1 py-3 text-center text-gray-400 border-t-2 border-transparent hover:text-primary transition flex flex-col items-center">
-                <i class="fas fa-folder-open text-xl mb-1"></i>
-                <span class="text-xs font-semibold">Senarai Rekod (Semua Guru)</span>
-            </button>
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-md">
+        <div class="max-w-2xl mx-auto flex">
+            <button onclick="window.tukarTab('borang')" id="btn-borang" class="flex-1 py-4 text-center text-primary font-bold border-t-4 border-primary bg-blue-50">BORANG</button>
+            <button onclick="window.tukarTab('rekod')" id="btn-rekod" class="flex-1 py-4 text-center text-gray-400 font-bold border-t-4 border-transparent">REKOD</button>
         </div>
     </nav>
 
-    <!-- Modal Kejayaan -->
-    <div id="successModal" class="fixed inset-0 z-[60] bg-black/60 hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
-            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
-                <i class="fas fa-check text-4xl text-green-600"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">Berjaya Disimpan!</h3>
-            <p class="text-gray-600 mb-6">Laporan telah dihantar ke storan awan untuk diakses oleh semua.</p>
-            <button type="button" onclick="window.tutupModalDanLihatRekod()" class="w-full bg-primary text-white rounded-xl py-3 font-bold hover:bg-blue-800 transition">
-                Tutup & Lihat Rekod
-            </button>
-        </div>
-    </div>
-
-    <!-- Script Logik Dengan Pangkalan Data Awan (Firebase) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 1. Data Pembolehubah Asas
-        const senaraiKelasData = [
-            { nama: "PRASEKOLAH", jumlah: 7 },
-            { nama: "1 BD", jumlah: 3 },
-            { nama: "3 BD", jumlah: 2 },
-            { nama: "4 BD", jumlah: 3 },
-            { nama: "5 BD", jumlah: 2 },
-            { nama: "6 BD", jumlah: 2 },
-            { nama: "4 BL", jumlah: 3 },
-            { nama: "1 BP (DELIMA)", jumlah: 9 },
-            { nama: "1 BP (ZAMRUD)", jumlah: 11 },
-            { nama: "2 BP (DELIMA)", jumlah: 7 },
-            { nama: "2BP (ZAMRUD)", jumlah: 7 },
-            { nama: "3 BP", jumlah: 8 },
-            { nama: "4 BP", jumlah: 4 },
-            { nama: "5 BP", jumlah: 7 },
-            { nama: "6 BP", jumlah: 8 }
+        // DATA INITIALIZATION
+        const dataKelas = [
+            { n: "PRASEKOLAH", j: 7 }, { n: "1 BD", j: 3 }, { n: "3 BD", j: 2 },
+            { n: "4 BD", j: 3 }, { n: "5 BD", j: 2 }, { n: "6 BD", j: 2 },
+            { n: "4 BL", j: 3 }, { n: "1 BP (DELIMA)", j: 9 }, { n: "1 BP (ZAMRUD)", j: 11 },
+            { n: "2 BP (DELIMA)", j: 7 }, { n: "2BP (ZAMRUD)", j: 7 }, { n: "3 BP", j: 8 },
+            { n: "4 BP", j: 4 }, { n: "5 BP", j: 7 }, { n: "6 BP", j: 8 }
         ];
 
-        const senaraiPentadbir = [
-            "AZIZ BIN TAHIR", "MOHAMAD ABIDIN BIN SIPEK", "LING MEE CHOO", "SALIHIN BIN AHMAD"
-        ];
-
-        const senaraiGuru = [
+        const stafPentadbir = ["AZIZ BIN TAHIR", "MOHAMAD ABIDIN BIN SIPEK", "LING MEE CHOO", "SALIHIN BIN AHMAD"];
+        const stafGuru = [
             "AIDA MASTURINA BINTI HAMKA", "AIFA NUR BESTARI BINTI RADUAN", "BRYAN ANAK CONSTANT", 
-            "CHRISTIAN SIMON", "DLIYANA ANAK JOHN", "EIFILISIA AMBER ANAK MERVIN", 
-            "FAZRI BIN BAKERI", "HAIROL BIN ISMAIL", "HILWA HAYATI BINTI MOHAMAD AJALAN", 
-            "JACQUELINE TIONG HOE DING", "JERIAH ANAK SIMON", "JIMMY ANAK PETER", 
-            "KHAIRI BIN SAHARI", "MARY JANE AMOI UMPANG ANAK DANIEL MAWAT", 
-            "MOHD RAFEEQ BIN SULAIMAN", "MUHAMMAD ZULHUSAINI BIN ABDUL WAHAB", 
-            "NUR HIDAYU BINTI YUSOP", "NURUL HUDA BTE MOHD IHWAN", "NUR AZLIN BINTI NORIZAN", 
-            "NUR FADZLIAH AMAL BINTI OSMAN", "SABARIAH BINTI SOLHI", "SYAEEZA LIANA BINTI RAMLI", 
-            "TENG RU YUN", "TING HUA EE", "TING YU YONG", "VANITHA A/P SUBRAMANIAM", 
-            "WONG PICK KING", "ZEPRINA ANAK BENIK", "NORMIRI BINTI ABDULLAH", 
-            "HAZUANI BINTI HIPNI", "HELLEN RANJA ANAK BELI", "NORAISYAH BINTI ASHARI", "KAMARIA BINTI BUJANG"
+            "CHRISTIAN SIMON", "DLIYANA ANAK JOHN", "VANITHA A/P SUBRAMANIAM", "WONG PICK KING"
         ];
 
-        const semuaStaf = [...senaraiPentadbir, ...senaraiGuru];
-        const kawasanKebersihan = ["1. BILIK DARJAH", "2. TANDAS", "3. RUANG RMT", "4. PERSEKITARAN SEKOLAH", "5. DEWAN"];
-        let rekodGuruTakHadir = [];
+        const kawasanBersih = ["1. BILIK DARJAH", "2. TANDAS", "3. RUANG RMT", "4. PERSEKITARAN SEKOLAH", "5. DEWAN"];
+        const slots = ["7.00 - 8.00 pagi", "8.00 - 9.00 pagi", "9.00 - 10.00 pagi", "10.00 - 11.00 pagi", "11.00 - 12.00 tgh", "12.00 - 1.00 tgh"];
 
-        // 2. Integrasi Storan Awan (Cloud Database)
-        let db, auth, currentUser;
-        let rekodLaporanAwan = [];
-        let isFirebaseReady = false;
-        let appId = 'e-laporan-skpk';
+        let db, isReady = false, listRekod = [], rekodStaf = [], pads = {};
+        let currentEditId = null;
 
-        try {
-            const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-            if (configStr !== '{}') {
-                const firebaseConfig = JSON.parse(configStr);
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'e-laporan-skpk';
-                
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                };
-                initAuth();
-
-                onAuthStateChanged(auth, (user) => {
-                    currentUser = user;
-                    if (user) {
-                        isFirebaseReady = true;
-                        const laporanRef = collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru');
-                        
-                        // Sentiasa Membaca Rekod Dari Awan Secara Langsung
-                        onSnapshot(laporanRef, (snapshot) => {
-                            rekodLaporanAwan = [];
-                            snapshot.forEach((doc) => {
-                                rekodLaporanAwan.push({ docId: doc.id, ...doc.data() });
-                            });
-                            // Susun rekod paling baru di atas
-                            rekodLaporanAwan.sort((a, b) => b.createdAt - a.createdAt);
-                            
-                            // Kemaskini paparan jika pengguna sedang berada di tab Rekod
-                            if (!document.getElementById('view-rekod').classList.contains('hidden')) {
-                                paparRekod();
-                            }
-                        }, (error) => {
-                            console.error("Gagal membaca pangkalan data:", error);
-                        });
-                    }
-                });
-            }
-        } catch (error) {
-            console.error("Pangkalan data awan tidak dapat dimulakan:", error);
-        }
-
-        // 3. Logik Asas Borang (Fungsi Global)
-        window.kemaskiniHari = function() {
-            const dateVal = document.getElementById('tarikh').value;
-            if(!dateVal) return;
-            const hariMelayu = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
-            document.getElementById('hari').value = hariMelayu[new Date(dateVal).getDay()];
-        }
-
-        window.kiraKehadiran = function() {
-            let totalTakHadir = 0; let totalHadir = 0; let totalSebenar = 0;
-            senaraiKelasData.forEach((kelas, index) => {
-                let sebenar = kelas.jumlah;
-                totalSebenar += sebenar;
-                let inputTakHadir = document.getElementById(`takhadir_${index}`);
-                let takHadir = parseInt(inputTakHadir.value) || 0;
-
-                if(takHadir < 0) { takHadir = 0; inputTakHadir.value = 0; }
-                if(takHadir > sebenar) { takHadir = sebenar; inputTakHadir.value = sebenar; }
-
-                let hadir = sebenar - takHadir;
-                let peratus = sebenar === 0 ? 0 : Math.round((hadir / sebenar) * 100);
-
-                document.getElementById(`hadir_${index}`).textContent = hadir;
-                document.getElementById(`peratus_${index}`).textContent = peratus + "%";
-                totalTakHadir += takHadir; totalHadir += hadir;
-            });
-
-            let peratusKeseluruhan = totalSebenar === 0 ? 0 : Math.round((totalHadir / totalSebenar) * 100);
-            document.getElementById('jumlah-takhadir').textContent = totalTakHadir;
-            document.getElementById('jumlah-hadir').textContent = totalHadir;
-            document.getElementById('jumlah-peratus').textContent = peratusKeseluruhan + "%";
-        }
-
-        window.tambahGuruTakHadir = function() {
-            const nama = document.getElementById('pilihGuru').value;
-            const sebab = document.getElementById('sebabTakHadir').value;
-            if(!nama || !sebab) { alert("Sila pilih Nama Staf dan Sebab Tidak Hadir."); return; }
-            rekodGuruTakHadir.push({ nama, sebab });
-            paparSenaraiGuru();
-            document.getElementById('pilihGuru').value = ""; document.getElementById('sebabTakHadir').value = "";
-        }
-
-        window.padamGuru = function(index) {
-            rekodGuruTakHadir.splice(index, 1);
-            paparSenaraiGuru();
-        }
-
-        function paparSenaraiGuru() {
-            const container = document.getElementById('senaraiGuruTakHadir');
-            container.innerHTML = "";
-            if(rekodGuruTakHadir.length === 0) return;
-            rekodGuruTakHadir.forEach((item, index) => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center bg-white p-3 border border-purple-200 rounded-lg shadow-sm">
-                        <div>
-                            <p class="font-bold text-sm text-purple-900">${item.nama}</p>
-                            <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded mt-1"><i class="fas fa-tag"></i> ${item.sebab}</span>
-                        </div>
-                        <button type="button" onclick="window.padamGuru(${index})" class="text-red-500 bg-red-50 p-2 rounded hover:bg-red-100 transition"><i class="fas fa-trash-alt"></i></button>
-                    </div>`;
+        // FIREBASE SETUP
+        const config = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'e-laporan-skpk';
+        if (config.apiKey) {
+            const app = initializeApp(config);
+            db = getFirestore(app);
+            const auth = getAuth(app);
+            const initAuth = async () => { if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } else { await signInAnonymously(auth); } };
+            initAuth();
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    isReady = true;
+                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru'), (snap) => {
+                        listRekod = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a,b) => b.createdAt - a.createdAt);
+                        if (!document.getElementById('view-rekod').classList.contains('hidden')) window.paparRekod();
+                    });
+                }
             });
         }
 
-        // Fungsi Membina Antaramuka Pada Mulaan
-        function binaAntaramukaKehadiran() {
+        // SIGNATURE LOGIC
+        function setupSign(id) {
+            const canvas = document.getElementById(id);
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "#fff"; ctx.fillRect(0,0,600,300);
+            pads[id] = { canvas, ctx, isSigned: false };
+            let draw = false;
+            const getP = (e) => {
+                const r = canvas.getBoundingClientRect();
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (cx-r.left)*(600/r.width), y: (cy-r.top)*(300/r.height) };
+            };
+            canvas.addEventListener('mousedown', (e) => { draw = true; pads[id].isSigned = true; const p = getP(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+            canvas.addEventListener('mousemove', (e) => { if(!draw) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+            canvas.addEventListener('mouseup', () => draw = false);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); draw = true; pads[id].isSigned = true; const p = getP(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, {passive:false});
+            canvas.addEventListener('touchmove', (e) => { if(!draw) return; e.preventDefault(); const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, {passive:false});
+            canvas.addEventListener('touchend', () => draw = false);
+        }
+
+        window.clearSignature = (id) => { pads[id].ctx.fillStyle = "#fff"; pads[id].ctx.fillRect(0,0,600,300); pads[id].isSigned = false; };
+
+        // FORM LOGIC
+        window.kemaskiniHari = () => { const v = document.getElementById('tarikh').value; if(!v) return; const h = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']; document.getElementById('hari').value = h[new Date(v).getDay()]; };
+        window.tambahStaf = () => { const n = document.getElementById('pilihStaf').value, s = document.getElementById('sebabTakHadir').value; if(!n || !s) return; rekodStaf.push({n, s}); pStaf(); };
+        window.buangStaf = (i) => { rekodStaf.splice(i, 1); pStaf(); };
+        const pStaf = () => { const c = document.getElementById('displayStafTakHadir'); c.innerHTML = rekodStaf.map((st, i) => `<div class="flex justify-between bg-white p-2 border rounded"><span>${st.n} (${st.s})</span><button type="button" onclick="window.buangStaf(${i})" class="text-red-500 font-bold">Padam</button></div>`).join(''); };
+
+        // INITIALIZE UI
+        const init = () => {
             const container = document.getElementById('senaraiKelasContainer');
-            let grandTotalSebenar = 0;
-            let html = `
-            <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
-                <table class="w-full text-sm text-left text-gray-600 whitespace-nowrap">
-                    <thead class="text-xs text-gray-700 uppercase bg-blue-50">
-                        <tr>
-                            <th class="px-3 py-3 border-b border-gray-200">Kelas</th>
-                            <th class="px-2 py-3 border-b border-gray-200 text-center">Bil. Sebenar</th>
-                            <th class="px-2 py-3 border-b border-gray-200 text-center text-red-600">Tak Hadir</th>
-                            <th class="px-2 py-3 border-b border-gray-200 text-center text-green-600">Hadir</th>
-                            <th class="px-2 py-3 border-b border-gray-200 text-center text-blue-700">% Hadir</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-            senaraiKelasData.forEach((kelas, index) => {
-                grandTotalSebenar += kelas.jumlah;
-                html += `
-                    <tr class="border-b bg-white hover:bg-gray-50 transition-colors">
-                        <td class="px-3 py-2 font-bold text-gray-800">${kelas.nama}</td>
-                        <td class="px-2 py-2 text-center bg-gray-50 font-medium">${kelas.jumlah}</td>
-                        <td class="px-2 py-2 text-center">
-                            <input type="number" id="takhadir_${index}" min="0" max="${kelas.jumlah}" value="0" 
-                                class="w-16 border border-gray-300 rounded text-center py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-inner font-bold text-red-600 bg-white" 
-                                oninput="window.kiraKehadiran()">
-                        </td>
-                        <td class="px-2 py-2 text-center font-bold text-green-600" id="hadir_${index}">${kelas.jumlah}</td>
-                        <td class="px-2 py-2 text-center font-bold text-blue-600" id="peratus_${index}">100%</td>
-                    </tr>`;
-            });
-            html += `
-                    </tbody>
-                    <tfoot class="bg-gray-100 text-gray-900 text-sm border-t-2 border-gray-300">
-                        <tr>
-                            <td class="px-3 py-3 font-extrabold uppercase">JUMLAH KESELURUHAN</td>
-                            <td id="jumlah-sebenar" class="px-2 py-3 text-center font-extrabold">${grandTotalSebenar}</td>
-                            <td id="jumlah-takhadir" class="px-2 py-3 text-center text-red-600 font-extrabold text-base">0</td>
-                            <td id="jumlah-hadir" class="px-2 py-3 text-center text-green-600 font-extrabold text-base">${grandTotalSebenar}</td>
-                            <td id="jumlah-peratus" class="px-2 py-3 text-center text-blue-700 font-extrabold text-base">100%</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>`;
-            container.innerHTML = html;
-        }
+            let h = `<table class="w-full text-xs text-left border"><thead><tr class="bg-blue-50"><th class="p-2 border">Kelas</th><th class="p-2 border text-center">T.Hadir</th></tr></thead><tbody>`;
+            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" class="w-10 text-center border"></td></tr>`; });
+            container.innerHTML = h + `</tbody></table>`;
 
-        function binaAntaramukaKebersihan() {
-            const container = document.getElementById('senaraiKebersihan');
-            let html = '';
-            kawasanKebersihan.forEach((kawasan, index) => {
-                const name = `bersih_${index}`;
-                html += `
-                    <div class="flex flex-col md:flex-row md:items-center justify-between p-2 border-b">
-                        <label class="text-sm font-semibold text-gray-700 mb-2 md:mb-0">${kawasan}</label>
-                        <div class="segmented-control md:w-64">
-                            <label><input type="radio" name="${name}" value="Lemah"><span>Lemah</span></label>
-                            <label><input type="radio" name="${name}" value="Memuaskan" checked><span>Memuaskan</span></label>
-                            <label><input type="radio" name="${name}" value="Baik"><span>Baik</span></label>
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
-        }
+            const kb = document.getElementById('senaraiKebersihan');
+            kawasanBersih.forEach((kw, i) => { kb.innerHTML += `<div class="flex justify-between py-2 border-b"><span class="text-sm">${kw}</span><div class="segmented-control w-32"><label><input type="radio" name="b_${i}" value="Lemah"><span>L</span></label><label><input type="radio" name="b_${i}" value="Memuaskan" checked><span>M</span></label><label><input type="radio" name="b_${i}" value="Baik"><span>B</span></label></div></div>`; });
 
-        function binaDropdownGuru() {
-            const selectKeberadaan = document.getElementById('pilihGuru');
-            semuaStaf.forEach(nama => selectKeberadaan.add(new Option(nama, nama)));
+            const sc = document.getElementById('slotPeristiwa');
+            slots.forEach((sl, i) => { sc.innerHTML += `<div><label class="form-label text-blue-700">${sl}</label><textarea id="slot_${i}" class="form-input" rows="2"></textarea></div>`; });
 
-            const selectPencatat = document.getElementById('namaPencatat');
-            senaraiGuru.forEach(nama => selectPencatat.add(new Option(nama, nama)));
+            const sPS = document.getElementById('pilihStaf'); [...stafPentadbir, ...stafGuru].forEach(n => sPS.add(new Option(n, n)));
+            const sPC = document.getElementById('namaPencatat'); stafGuru.forEach(n => sPC.add(new Option(n, n)));
+            const sPY = document.getElementById('namaPenyemak'); stafPentadbir.forEach(n => sPY.add(new Option(n, n)));
 
-            const selectPenyemak = document.getElementById('namaPenyemak');
-            senaraiPentadbir.forEach(nama => selectPenyemak.add(new Option(nama, nama)));
-        }
+            setupSign('signPad1'); setupSign('signPad2');
+            document.getElementById('tarikh').valueAsDate = new Date(); window.kemaskiniHari();
+        };
 
-        // Laksana Semasa Mula
-        document.getElementById('tarikh').valueAsDate = new Date();
-        window.kemaskiniHari();
-        binaAntaramukaKehadiran();
-        binaAntaramukaKebersihan();
-        binaDropdownGuru();
-
-        // 4. Logik Menghantar Laporan (Simpan ke Awan)
-        window.hantarLaporan = async function(e) {
+        window.hantarLaporan = async (e) => {
             e.preventDefault();
-
-            let rekodKehadiranPenuh = senaraiKelasData.map((kelas, index) => {
-                return parseInt(document.getElementById(`takhadir_${index}`).value) || 0;
-            });
-
-            let dataKebersihan = {};
-            kawasanKebersihan.forEach((k, index) => {
-                dataKebersihan[k] = document.querySelector(`input[name="bersih_${index}"]:checked`).value;
-            });
-
-            const payload = {
-                tarikh: document.getElementById('tarikh').value,
-                hari: document.getElementById('hari').value,
-                minggu: document.getElementById('minggu').value,
-                kumpulan: document.getElementById('kumpulan').value,
-                rekodKehadiranPenuh: JSON.stringify(rekodKehadiranPenuh),
-                kebersihan: JSON.stringify(dataKebersihan),
+            if(!pads['signPad1'].isSigned) return alert("Cikgu wajib menandatangan.");
+            
+            const p = {
+                tarikh: document.getElementById('tarikh').value, hari: document.getElementById('hari').value, minggu: document.getElementById('minggu').value, kumpulan: document.getElementById('kumpulan').value,
+                kehadiran: JSON.stringify(dataKelas.map((_, i) => parseInt(document.getElementById(`th_${i}`).value) || 0)),
+                kebersihan: JSON.stringify(kawasanBersih.map((_, i) => document.querySelector(`input[name="b_${i}"]:checked`).value)),
                 disiplin: document.getElementById('catatan_disiplin').value,
-                slot7_8: document.getElementById('slot_1').value,
-                slot8_9: document.getElementById('slot_2').value,
-                slot9_10: document.getElementById('slot_3').value,
-                slot10_11: document.getElementById('slot_4').value,
-                slot11_12: document.getElementById('slot_5').value,
-                slot12_1: document.getElementById('slot_6').value,
-                guruTidakHadir: JSON.stringify(rekodGuruTakHadir),
-                ulasan: document.getElementById('ulasan').value,
-                pencatat: document.getElementById('namaPencatat').value,
-                penyemak: document.getElementById('namaPenyemak').value,
-                createdAt: Date.now() // Penting untuk susunan masa
+                peristiwa: JSON.stringify(slots.map((_, i) => document.getElementById(`slot_${i}`).value)),
+                staf: JSON.stringify(rekodStaf), ulasan: document.getElementById('ulasan').value, pencatat: document.getElementById('namaPencatat').value, penyemak: document.getElementById('namaPenyemak').value,
+                sign1: pads['signPad1'].canvas.toDataURL('image/png'),
+                sign2: pads['signPad2'].isSigned ? pads['signPad2'].canvas.toDataURL('image/png') : null,
+                createdAt: Date.now()
             };
 
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            
-            if (isFirebaseReady && currentUser) {
-                // Mod Pangkalan Data Awan (Firebase)
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan ke Awan...';
+            const btn = document.getElementById('btnHantar');
+            btn.disabled = true; btn.innerHTML = "Sila Tunggu...";
 
-                try {
-                    const laporanRef = collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru');
-                    await addDoc(laporanRef, payload);
-                    document.getElementById('successModal').classList.remove('hidden');
-                    document.getElementById('successModal').classList.add('flex');
-                } catch (error) {
-                    alert("Ralat storan awan: " + error.message);
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod Laporan';
-                }
-            } else {
-                // Mod Fallback (Local Storage - jika dibuka di luar sistem awan)
-                let rekodLama = JSON.parse(localStorage.getItem('rekodLaporanHarian')) || [];
-                rekodLama.unshift(payload);
-                localStorage.setItem('rekodLaporanHarian', JSON.stringify(rekodLama));
-                rekodLaporanAwan = rekodLama; // Sync local
-                
-                document.getElementById('successModal').classList.remove('hidden');
-                document.getElementById('successModal').classList.add('flex');
-            }
-        }
-
-        // 5. Paparan Rekod dan Padam
-        window.tutupModalDanLihatRekod = function() {
-            document.getElementById('successModal').classList.add('hidden');
-            document.getElementById('successModal').classList.remove('flex');
-            
-            document.getElementById('eLaporanForm').reset();
-            rekodGuruTakHadir = []; paparSenaraiGuru(); 
-            
-            document.getElementById('tarikh').valueAsDate = new Date();
-            window.kemaskiniHari(); window.kiraKehadiran();
-            
-            window.tukarTab('rekod');
-        }
-
-        window.tukarTab = function(tabName) {
-            if(tabName === 'borang') {
-                document.getElementById('view-borang').classList.remove('hidden');
-                document.getElementById('view-rekod').classList.add('hidden');
-                document.getElementById('tab-borang').classList.add('text-primary', 'border-primary', 'bg-blue-50/30');
-                document.getElementById('tab-borang').classList.remove('text-gray-400', 'border-transparent');
-                document.getElementById('tab-rekod').classList.add('text-gray-400', 'border-transparent');
-                document.getElementById('tab-rekod').classList.remove('text-primary', 'border-primary', 'bg-blue-50/30');
-            } else {
-                document.getElementById('view-borang').classList.add('hidden');
-                document.getElementById('view-rekod').classList.remove('hidden');
-                document.getElementById('tab-rekod').classList.add('text-primary', 'border-primary', 'bg-blue-50/30');
-                document.getElementById('tab-rekod').classList.remove('text-gray-400', 'border-transparent');
-                document.getElementById('tab-borang').classList.add('text-gray-400', 'border-transparent');
-                document.getElementById('tab-borang').classList.remove('text-primary', 'border-primary', 'bg-blue-50/30');
-                window.paparRekod();
-            }
-            window.scrollTo(0,0);
-        }
-
-        window.paparRekod = function() {
-            const container = document.getElementById('senaraiRekodContainer');
-            // Jika tak sambung internet/awan, cuba ambil dari local
-            let sumberData = (isFirebaseReady && currentUser) ? rekodLaporanAwan : (JSON.parse(localStorage.getItem('rekodLaporanHarian')) || []);
-
-            if(sumberData.length === 0) {
-                container.innerHTML = '<div class="text-center py-12 text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100"><i class="fas fa-folder-open text-5xl mb-4 text-gray-300"></i><p>Tiada rekod laporan dijumpai di pangkalan awan.</p></div>';
-                return;
-            }
-
-            let html = '';
-            sumberData.forEach((item, index) => {
-                let tarikhFormat = item.tarikh.split('-').reverse().join('-');
-                html += '<div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-primary mb-3 flex justify-between items-center relative overflow-hidden">' +
-                            '<div>' +
-                                '<h4 class="font-bold text-lg text-gray-800"><i class="fas fa-calendar-day text-primary mr-2"></i>' + tarikhFormat + '</h4>' +
-                                '<p class="text-sm text-gray-500 ml-6">' + item.hari + ' &bull; <span class="font-semibold">' + item.kumpulan + '</span></p>' +
-                            '</div>' +
-                            '<div class="flex gap-2">' +
-                                '<button type="button" onclick="window.muatTurunPDF(' + index + ')" class="text-blue-500 hover:text-blue-700 p-2.5 bg-blue-50 rounded-lg transition" title="Muat Turun PDF">' +
-                                    '<i class="fas fa-file-pdf"></i>' +
-                                '</button>' +
-                                '<button type="button" onclick="window.padamRekod(' + index + ')" class="text-red-400 hover:text-red-600 p-2.5 bg-red-50 rounded-lg transition" title="Padam Rekod">' +
-                                    '<i class="fas fa-trash-alt"></i>' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>';
-            });
-            container.innerHTML = html;
-        }
-
-        window.padamRekod = async function(index) {
-            if(confirm('Adakah anda pasti memadam rekod ini secara kekal dari pangkalan data sekolah? Semua guru tidak akan dapat melihatnya lagi.')) {
-                
-                if (isFirebaseReady && currentUser) {
-                    let dataAwan = rekodLaporanAwan[index];
-                    if(dataAwan && dataAwan.docId) {
-                        try {
-                            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'laporan_guru', dataAwan.docId));
-                            // UI akan automatik segar semula kerana fungsi 'onSnapshot'
-                        } catch(e) {
-                            alert("Gagal memadam dari awan.");
-                        }
-                    }
+            try {
+                if (currentEditId) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'laporan_guru', currentEditId), p);
+                    alert("Rekod berjaya dikemaskini!");
                 } else {
-                    // Fallback Local
-                    let rekodLama = JSON.parse(localStorage.getItem('rekodLaporanHarian')) || [];
-                    rekodLama.splice(index, 1);
-                    localStorage.setItem('rekodLaporanHarian', JSON.stringify(rekodLama));
-                    window.paparRekod();
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru'), p);
+                    alert("Laporan berjaya dihantar ke awan!");
                 }
+                window.location.reload();
+            } catch(err) {
+                alert("Ralat: " + err.message);
+                btn.disabled = false; btn.innerHTML = currentEditId ? "Kemaskini Laporan" : "Hantar Rekod Laporan";
             }
-        }
+        };
 
-        // 6. Penjanaan PDF Kekal Sama
-        window.muatTurunPDF = function(index) {
-            let sumberData = (isFirebaseReady && currentUser) ? rekodLaporanAwan : (JSON.parse(localStorage.getItem('rekodLaporanHarian')) || []);
-            let data = sumberData[index];
-            if(!data) return;
+        window.tukarTab = (t) => {
+            document.getElementById('view-borang').classList.toggle('hidden', t !== 'borang');
+            document.getElementById('view-rekod').classList.toggle('hidden', t !== 'rekod');
+            document.getElementById('btn-borang').className = t === 'borang' ? 'flex-1 py-4 text-center text-primary font-bold border-t-4 border-primary bg-blue-50' : 'flex-1 py-4 text-center text-gray-400 font-bold border-t-4 border-transparent';
+            document.getElementById('btn-rekod').className = t === 'rekod' ? 'flex-1 py-4 text-center text-primary font-bold border-t-4 border-primary bg-blue-50' : 'flex-1 py-4 text-center text-gray-400 font-bold border-t-4 border-transparent';
+            if(t === 'rekod') window.paparRekod();
+        };
 
-            let tarikhFormat = data.tarikh.split('-').reverse().join('-');
+        window.paparRekod = () => {
+            const c = document.getElementById('containerRekod');
+            if(listRekod.length === 0) { c.innerHTML = "<p class='text-center py-10'>Tiada rekod disimpan.</p>"; return; }
+            c.innerHTML = listRekod.map((r, i) => `
+                <div class="bg-white p-4 rounded-xl shadow flex justify-between items-center">
+                    <div><h4 class="font-bold text-sm">${r.tarikh} (${r.hari})</h4><p class="text-[10px] text-gray-500">${r.kumpulan} &bull; Pencatat: ${r.pencatat}</p></div>
+                    <div class="flex gap-1">
+                        <button onclick="window.muatTurunPDF(${i})" class="text-blue-500 p-2 bg-blue-50 rounded"><i class="fas fa-file-pdf"></i></button>
+                        <button onclick="window.editRekod(${i})" class="text-yellow-600 p-2 bg-yellow-50 rounded"><i class="fas fa-pencil-alt"></i></button>
+                        <button onclick="window.hapusRekod('${r.docId}')" class="text-red-400 p-2 bg-red-50 rounded"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`).join('');
+        };
 
-            const loading = document.createElement('div');
-            loading.id = 'pdfLoading';
-            loading.className = 'fixed inset-0 z-[70] bg-black/80 flex flex-col items-center justify-center text-white font-bold backdrop-blur-sm';
-            loading.innerHTML = '<i class="fas fa-spinner fa-spin text-5xl mb-4 text-blue-400"></i><p class="text-lg">Menjana Dokumen PDF...</p>';
-            document.body.appendChild(loading);
-
-            // PENGIRAAN JADUAL KEHADIRAN PENUH UNTUK PDF
-            let jadualKehadiranHtml = '';
-            let rekodKehadiranPenuh = data.rekodKehadiranPenuh ? JSON.parse(data.rekodKehadiranPenuh) : [];
+        window.editRekod = (idx) => {
+            const r = listRekod[idx];
+            currentEditId = r.docId;
             
-            if(rekodKehadiranPenuh.length > 0) {
-                let grandTotalSebenar = 0; let grandTotalTakHadir = 0; let grandTotalHadir = 0;
-                let barisHtml = rekodKehadiranPenuh.map((takHadir, i) => {
-                    let kelas = senaraiKelasData[i];
-                    let sebenar = kelas.jumlah; let hadir = sebenar - takHadir;
-                    let peratus = sebenar === 0 ? 0 : Math.round((hadir / sebenar) * 100);
+            // Isi Borang
+            document.getElementById('tarikh').value = r.tarikh;
+            window.kemaskiniHari();
+            document.getElementById('minggu').value = r.minggu;
+            document.getElementById('kumpulan').value = r.kumpulan;
+            document.getElementById('catatan_disiplin').value = r.disiplin;
+            document.getElementById('ulasan').value = r.ulasan;
+            document.getElementById('namaPencatat').value = r.pencatat;
+            document.getElementById('namaPenyemak').value = r.penyemak;
 
-                    grandTotalSebenar += sebenar; grandTotalTakHadir += takHadir; grandTotalHadir += hadir;
+            // Isi Kehadiran
+            const attendance = JSON.parse(r.kehadiran);
+            attendance.forEach((val, i) => { if(document.getElementById(`th_${i}`)) document.getElementById(`th_${i}`).value = val; });
 
-                    return `<tr>
-                        <td style="border:1px solid #000; padding:4px;">${kelas.nama}</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${sebenar}</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${takHadir}</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${hadir}</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${peratus}%</td>
-                    </tr>`;
-                }).join('');
+            // Isi Kebersihan
+            const clean = JSON.parse(r.kebersihan);
+            clean.forEach((val, i) => { 
+                const rad = document.querySelector(`input[name="b_${i}"][value="${val}"]`);
+                if(rad) rad.checked = true;
+            });
 
-                let grandPeratus = grandTotalSebenar === 0 ? 0 : Math.round((grandTotalHadir / grandTotalSebenar) * 100);
+            // Isi Peristiwa
+            const ev = JSON.parse(r.peristiwa);
+            ev.forEach((val, i) => { if(document.getElementById(`slot_${i}`)) document.getElementById(`slot_${i}`).value = val; });
 
-                jadualKehadiranHtml = `
-                <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px;">
-                    <thead><tr style="background-color: #f3f4f6;">
-                        <th style="border:1px solid #000; padding:4px; text-align:left;">Kelas</th>
-                        <th style="border:1px solid #000; padding:4px;">Bil. Sebenar</th>
-                        <th style="border:1px solid #000; padding:4px;">Tak Hadir</th>
-                        <th style="border:1px solid #000; padding:4px;">Hadir</th>
-                        <th style="border:1px solid #000; padding:4px;">% Hadir</th>
-                    </tr></thead>
-                    <tbody>${barisHtml}</tbody>
-                    <tfoot><tr style="background-color: #e5e7eb; font-weight:bold;">
-                        <td style="border:1px solid #000; padding:4px;">JUMLAH KESELURUHAN</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${grandTotalSebenar}</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${grandTotalTakHadir}</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${grandTotalHadir}</td>
-                        <td style="border:1px solid #000; padding:4px; text-align:center;">${grandPeratus}%</td>
-                    </tr></tfoot>
-                </table>`;
-            } else {
-                jadualKehadiranHtml = `<p style="margin:0 0 15px 0;"><i>Tiada rekod terperinci (Rekod versi lama)</i></p>`;
-            }
+            // Isi Staf
+            rekodStaf = JSON.parse(r.staf);
+            pStaf();
 
-            let kebersihan = JSON.parse(data.kebersihan || '{}');
-            let guruTakHadir = JSON.parse(data.guruTidakHadir || '[]');
+            // Sediakan Signature (Draw back to canvas)
+            const img1 = new Image(); img1.src = r.sign1; img1.onload = () => pads['signPad1'].ctx.drawImage(img1, 0, 0); pads['signPad1'].isSigned = true;
+            if (r.sign2) { const img2 = new Image(); img2.src = r.sign2; img2.onload = () => pads['signPad2'].ctx.drawImage(img2, 0, 0); pads['signPad2'].isSigned = true; }
 
-            let bersihHtml = Object.keys(kebersihan).map(k => `<tr><td style="border:1px solid #000; padding:6px; font-weight:bold; width:40%;">${k}</td><td style="border:1px solid #000; padding:6px;">${kebersihan[k]}</td></tr>`).join('');
-            let guruHtml = guruTakHadir.length > 0 ? guruTakHadir.map(g => `<li style="margin-bottom:4px;">${g.nama} <span style="color:#555; font-style:italic;">(${g.sebab})</span></li>`).join('') : '<i>Tiada rekod (Semua staf hadir)</i>';
+            // UI
+            document.getElementById('statusEdit').classList.remove('hidden');
+            document.getElementById('btnHantar').innerHTML = "Kemaskini Laporan";
+            window.tukarTab('borang');
+            window.scrollTo(0,0);
+        };
 
-            const pdfContentString = `
-                <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; font-size: 12px; line-height: 1.5; background-color: #fff;">
-                    <div style="text-align:center; margin-bottom: 25px; border-bottom: 3px solid #1e3a8a; padding-bottom: 15px;">
-                        <h2 style="margin:0 0 5px 0; font-size: 18px; text-transform:uppercase; color: #1e3a8a;">Laporan Harian Guru Bertugas</h2>
-                        <h3 style="margin:0; font-size: 14px; color: #333;">SK PENDIDIKAN KHAS MIRI</h3>
+        window.batalEdit = () => { window.location.reload(); };
+
+        window.hapusRekod = async (id) => { if(confirm("Adakah cikgu pasti mahu memadam rekod ini secara kekal?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'laporan_guru', id)); };
+
+        // GENERATE PDF LANDSCAPE
+        window.muatTurunPDF = (idx) => {
+            const r = listRekod[idx]; if(!r) return;
+            const l = document.createElement('div');
+            l.className = 'fixed inset-0 z-[200] bg-black/80 flex items-center justify-center text-white font-bold';
+            l.innerHTML = 'MENJANA PDF LANDSCAPE...'; document.body.appendChild(l);
+
+            const attendance = JSON.parse(r.kehadiran);
+            const kebersihan = JSON.parse(r.kebersihan);
+            const peristiwa = JSON.parse(r.peristiwa);
+            const staf = JSON.parse(r.staf);
+
+            let gS = 0, gT = 0, gH = 0;
+            const tableRows = attendance.map((tak, i) => {
+                const k = dataKelas[i]; const s = k.j; const h = s - tak; const p = s === 0 ? 0 : Math.round((h/s)*100);
+                gS += s; gT += tak; gH += h;
+                return `<tr style="page-break-inside: avoid;"><td style="border:1px solid #000; padding:4px;">${k.n}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${s}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${tak}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${h}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${p}%</td></tr>`;
+            }).join('');
+
+            const htmlContent = `
+                <div style="width: 1000px; padding: 20px; font-family: Arial; font-size: 10pt; background: #fff;">
+                    <div style="text-align:center; border-bottom: 3px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
+                        <h2 style="margin:0; font-size: 18pt;">LAPORAN HARIAN GURU BERTUGAS</h2>
+                        <h3 style="margin:0; font-size: 13pt;">SK PENDIDIKAN KHAS MIRI</h3>
                     </div>
-                    <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+
+                    <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed;">
                         <tr>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; width: 20%; background-color: #f3f4f6;">Tarikh</td>
-                            <td style="border:1px solid #000; padding:6px; width: 30%;">${tarikhFormat}</td>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; width: 20%; background-color: #f3f4f6;">Hari</td>
-                            <td style="border:1px solid #000; padding:6px; width: 30%;">${data.hari}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; width:32%;">Tarikh</td>
+                            <td style="border:1px solid #000; padding:6px; width:18%;">${r.tarikh}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; width:32%;">Hari</td>
+                            <td style="border:1px solid #000; padding:6px; width:18%;">${r.hari}</td>
                         </tr>
                         <tr>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background-color: #f3f4f6;">Minggu Ke-</td>
-                            <td style="border:1px solid #000; padding:6px;">${data.minggu}</td>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background-color: #f3f4f6;">Kumpulan</td>
-                            <td style="border:1px solid #000; padding:6px;">${data.kumpulan}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6;">Minggu Ke-</td>
+                            <td style="border:1px solid #000; padding:6px;">${r.minggu}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6;">Kumpulan</td>
+                            <td style="border:1px solid #000; padding:6px;">${r.kumpulan}</td>
                         </tr>
                     </table>
-                    <h4 style="background-color: #1e3a8a; color: white; padding: 5px 8px; margin: 15px 0 10px 0; border-radius: 3px;">MAKLUMAT KEHADIRAN MURID</h4>
-                    ${jadualKehadiranHtml}
-                    <h4 style="background-color: #1e3a8a; color: white; padding: 5px 8px; margin: 15px 0 10px 0; border-radius: 3px;">LAPORAN KEBERSIHAN & DISIPLIN</h4>
-                    <table style="width:100%; border-collapse: collapse; margin-bottom: 10px;">${bersihHtml}</table>
-                    <div style="border: 1px solid #000; padding: 8px; margin-bottom: 15px; background-color: #f9fafb;">
-                        <strong>Catatan Disiplin Murid:</strong><br><span style="white-space: pre-wrap;">${data.disiplin || 'Tiada catatan khusus.'}</span>
+
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0;">MAKLUMAT KEHADIRAN MURID</h4>
+                            <table style="width:100%; border-collapse: collapse; table-layout: fixed; font-size: 9pt;">
+                                <thead><tr style="background:#f3f4f6;">
+                                    <th style="border:1px solid #000; padding:4px; text-align:left; width:36%;">Kelas</th>
+                                    <th style="border:1px solid #000; padding:4px; width:16%;">Jumlah</th>
+                                    <th style="border:1px solid #000; padding:4px; width:16%;">Tidak Hadir</th>
+                                    <th style="border:1px solid #000; padding:4px; width:16%;">Hadir</th>
+                                    <th style="border:1px solid #000; padding:4px; width:16%;">% Hadir</th>
+                                </tr></thead>
+                                <tbody>${tableRows}</tbody>
+                                <tr style="font-weight:bold; background:#e5e7eb;">
+                                    <td style="border:1px solid #000; padding:4px; text-align:left;">JUMLAH KESELURUHAN</td>
+                                    <td style="border:1px solid #000; padding:4px; text-align:center;">${gS}</td>
+                                    <td style="border:1px solid #000; padding:4px; text-align:center;">${gT}</td>
+                                    <td style="border:1px solid #000; padding:4px; text-align:center;">${gH}</td>
+                                    <td style="border:1px solid #000; padding:4px; text-align:center;">${gS===0?0:Math.round((gH/gS)*100)}%</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0;">KEBERSIHAN & DISIPLIN</h4>
+                            <table style="width:100%; border-collapse: collapse; margin-bottom: 10px;">
+                                ${kawasanBersih.map((kw, i) => `<tr><td style="border:1px solid #000; padding:6px; width:50%; font-weight:bold;">${kw}</td><td style="border:1px solid #000; padding:6px;">${kebersihan[i]}</td></tr>`).join('')}
+                            </table>
+                            <div style="border: 1px solid #000; padding:8px; background:#f9fafb; min-height:80px; margin-bottom: 15px;">
+                                <strong>Disiplin Murid:</strong><br>${r.disiplin || 'Tiada catatan khusus.'}
+                            </div>
+                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 5px 0;">KEBERADAAN STAF</h4>
+                            <ul style="margin:0; padding-left:20px;">${staf.length > 0 ? staf.map(s => `<li>${s.n} (${s.s})</li>`).join('') : 'Semua staf hadir.'}</ul>
+                        </div>
                     </div>
-                    <h4 style="background-color: #1e3a8a; color: white; padding: 5px 8px; margin: 15px 0 10px 0; border-radius: 3px;">CATATAN PERISTIWA SEMASA</h4>
-                    <table style="width:100%; border-collapse: collapse; margin-bottom: 15px;">
-                        <tr><td style="border:1px solid #000; padding:6px; width:25%; font-weight:bold;">7.00 - 8.00 pagi</td><td style="border:1px solid #000; padding:6px; white-space: pre-wrap;">${data.slot7_8 || '-'}</td></tr>
-                        <tr><td style="border:1px solid #000; padding:6px; font-weight:bold;">8.00 - 9.00 pagi</td><td style="border:1px solid #000; padding:6px; white-space: pre-wrap;">${data.slot8_9 || '-'}</td></tr>
-                        <tr><td style="border:1px solid #000; padding:6px; font-weight:bold;">9.00 - 10.00 pagi</td><td style="border:1px solid #000; padding:6px; white-space: pre-wrap;">${data.slot9_10 || '-'}</td></tr>
-                        <tr><td style="border:1px solid #000; padding:6px; font-weight:bold;">10.00 - 11.00 pagi</td><td style="border:1px solid #000; padding:6px; white-space: pre-wrap;">${data.slot10_11 || '-'}</td></tr>
-                        <tr><td style="border:1px solid #000; padding:6px; font-weight:bold;">11.00 - 12.00 tgh</td><td style="border:1px solid #000; padding:6px; white-space: pre-wrap;">${data.slot11_12 || '-'}</td></tr>
-                        <tr><td style="border:1px solid #000; padding:6px; font-weight:bold;">12.00 - 1.00 tgh</td><td style="border:1px solid #000; padding:6px; white-space: pre-wrap;">${data.slot12_1 || '-'}</td></tr>
+
+                    <div class="html2pdf__page-break"></div>
+
+                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0;">CATATAN PERISTIWA SEMASA</h4>
+                    <table style="width:100%; border-collapse: collapse; table-layout: fixed;">
+                        ${peristiwa.map((txt, i) => `<tr><td style="border:1px solid #000; padding:6px; width:20%; font-weight:bold; background:#f3f4f6;">${slots[i]}</td><td style="border:1px solid #000; padding:6px; white-space:pre-wrap;">${txt || '-'}</td></tr>`).join('')}
                     </table>
-                    <h4 style="background-color: #1e3a8a; color: white; padding: 5px 8px; margin: 15px 0 10px 0; border-radius: 3px;">KEBERADAAN GURU & PENTADBIR (TIDAK HADIR)</h4>
-                    <ul style="margin:0 0 15px 15px; padding:0;">${guruHtml}</ul>
-                    <h4 style="background-color: #1e3a8a; color: white; padding: 5px 8px; margin: 15px 0 10px 0; border-radius: 3px;">ULASAN / CADANGAN / REFLEKSI</h4>
-                    <div style="border: 1px solid #000; padding: 8px; min-height: 50px; white-space: pre-wrap; margin-bottom: 25px;">${data.ulasan || 'Tiada ulasan.'}</div>
-                    <table style="width:100%; margin-top: 20px; page-break-inside: avoid;">
+
+                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0;">ULASAN / CADANGAN / REFLEKSI</h4>
+                    <div style="border: 1px solid #000; padding:8px; min-height:50px; white-space: pre-wrap;">${r.ulasan || 'Tiada ulasan.'}</div>
+
+                    <table style="width:100%; margin-top:30px;">
                         <tr>
-                            <td style="width:50%; text-align: left; vertical-align: bottom;">
-                                <p style="margin:0 0 40px 0;">Dicatat Oleh,</p><div style="border-bottom: 1px solid #000; width: 80%; margin-bottom: 5px;"></div><strong style="text-transform: uppercase;">${data.pencatat}</strong>
+                            <td style="width:50%; vertical-align:bottom;">
+                                <p style="margin:0;">Dicatat Oleh:</p>
+                                <img src="${r.sign1}" style="height:60px; margin: 5px 0;"/><br>
+                                <strong>${r.pencatat}</strong>
                             </td>
-                            <td style="width:50%; text-align: left; vertical-align: bottom;">
-                                <p style="margin:0 0 40px 0;">Disemak Oleh,</p><div style="border-bottom: 1px solid #000; width: 80%; margin-bottom: 5px;"></div><strong style="text-transform: uppercase;">${data.penyemak}</strong>
+                            <td style="width:50%; vertical-align:bottom;">
+                                <p style="margin:0;">Disemak Oleh:</p>
+                                ${r.sign2 ? `<img src="${r.sign2}" style="height:60px; margin: 5px 0;"/>` : '<div style="height:60px;"></div>'}<br>
+                                <strong>${r.penyemak}</strong>
                             </td>
                         </tr>
                     </table>
                 </div>`;
 
-            var opt = { margin: 10, filename: 'LAPORAN_' + tarikhFormat + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opt).from(pdfContentString).save().then(() => { if(document.body.contains(loading)) document.body.removeChild(loading); }).catch(err => {
-                console.error('Ralat:', err); if(document.body.contains(loading)) document.body.removeChild(loading); alert('Terdapat ralat semasa menjana PDF. Sila cuba lagi.');
-            });
-        }
+            const opt = { margin: 10, filename: `LAPORAN_${r.tarikh}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, windowWidth: 1050 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: ['css', 'legacy'] } };
+            html2pdf().set(opt).from(htmlContent).save().then(() => document.body.removeChild(l));
+        };
+
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
