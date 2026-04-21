@@ -39,15 +39,6 @@
         .signature-container { border: 2px dashed #cbd5e1; border-radius: 8px; background-color: #fff; position: relative; touch-action: none; }
         canvas.signature-pad { width: 100%; height: 150px; border-radius: 8px; cursor: crosshair; }
         .required-star { color: #ef4444; margin-left: 2px; }
-
-        /* Khas Untuk Fungsi Cetakan Sahaja */
-        #print-area { display: none; }
-        @media print {
-            body { background-color: white; }
-            header, main, nav, .fixed { display: none !important; }
-            #print-area { display: block !important; width: 100%; margin: 0; padding: 0; }
-            @page { size: landscape; margin: 10mm; }
-        }
     </style>
 </head>
 <body class="pb-20">
@@ -67,12 +58,11 @@
     </header>
 
     <main class="max-w-2xl mx-auto p-4">
-        
-        <!-- ================= VIEW: BORANG ================= -->
+        <!-- VIEW: BORANG -->
         <div id="view-borang">
             <div id="statusEdit" class="hidden mb-4 bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded text-yellow-700 font-bold flex justify-between items-center shadow-sm">
                 <span><i class="fas fa-edit mr-2"></i> Mengemaskini rekod laporan.</span>
-                <button onclick="window.batalEdit()" class="text-xs bg-yellow-500 text-white px-3 py-1 rounded-full font-bold">BATAL</button>
+                <button type="button" onclick="window.batalEdit()" class="text-xs bg-yellow-500 text-white px-3 py-1 rounded-full font-bold">BATAL</button>
             </div>
             
             <form id="eLaporanForm" onsubmit="window.hantarLaporan(event)">
@@ -165,7 +155,7 @@
             </form>
         </div>
 
-        <!-- ================= VIEW: REKOD ================= -->
+        <!-- VIEW: REKOD -->
         <div id="view-rekod" class="hidden">
             <div class="flex flex-col gap-4 mb-6">
                 <h2 class="text-xl font-bold text-primary"><i class="fas fa-folder-open mr-2"></i> Rekod Laporan</h2>
@@ -186,8 +176,7 @@
         </div>
     </main>
 
-    <!-- Navigasi Bawah -->
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex h-16">
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-2xl flex h-16">
         <button onclick="window.tukarTab('borang')" id="btn-borang" class="flex-1 text-primary font-bold border-t-4 border-primary bg-blue-50 flex flex-col items-center justify-center gap-1 transition-all">
             <i class="fas fa-edit"></i><span class="text-[10px]">BORANG</span>
         </button>
@@ -196,8 +185,16 @@
         </button>
     </nav>
 
-    <!-- Ruangan Tersembunyi Khas Untuk Fungsi Cetakan Terus -->
-    <div id="print-area"></div>
+    <!-- Modal Status -->
+    <div id="modalLoading" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-2xl text-center max-w-sm w-full shadow-2xl">
+            <div class="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Sedang Diproses...</h3>
+            <p class="text-sm text-gray-500">Sila tunggu sebentar.</p>
+        </div>
+    </div>
 
     <!-- Firebase SDK Modules -->
     <script type="module">
@@ -288,12 +285,12 @@
         window.kemaskiniHari = () => { const v = document.getElementById('tarikh').value; if(!v) return; const h = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']; document.getElementById('hari').value = h[new Date(v).getDay()]; };
         window.tambahStaf = () => { const n = document.getElementById('pilihStaf').value, s = document.getElementById('sebabTakHadir').value; if(!n || !s) return; rekodStaf.push({n, s}); pStaf(); };
         window.buangStaf = (i) => { rekodStaf.splice(i, 1); pStaf(); };
-        const pStaf = () => { const c = document.getElementById('displayStafTakHadir'); c.innerHTML = rekodStaf.map((st, i) => `<div class="flex justify-between bg-white p-2 border rounded items-center"><span>${st.n} (${st.s})</span><button type="button" onclick="window.buangStaf(${i})" class="text-red-500 font-bold p-2"><i class="fas fa-times"></i></button></div>`).join(''); };
+        const pStaf = () => { const c = document.getElementById('displayStafTakHadir'); c.innerHTML = rekodStaf.map((st, i) => `<div class="flex justify-between bg-white p-2 border rounded items-center"><span>${st.n} <br><span class="text-xs text-gray-500">(${st.s})</span></span><button type="button" onclick="window.buangStaf(${i})" class="text-red-500 font-bold p-2"><i class="fas fa-times"></i></button></div>`).join(''); };
 
         const init = () => {
             const container = document.getElementById('senaraiKelasContainer');
-            let h = `<table class="w-full text-[11px] text-left border"><thead><tr class="bg-primary text-white"><th class="p-2 border">Kelas</th><th class="p-2 border text-center">T.Hadir</th></tr></thead><tbody>`;
-            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold text-gray-700">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" min="0" max="${k.j}" class="w-12 text-center border p-1 rounded font-bold text-red-600 focus:bg-yellow-50"></td></tr>`; });
+            let h = `<table class="w-full text-xs text-left border"><thead><tr class="bg-primary text-white"><th class="p-2 border">Kelas</th><th class="p-2 border text-center">T.Hadir</th></tr></thead><tbody>`;
+            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold text-gray-700">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" min="0" max="${k.j}" class="w-16 text-center border p-1 rounded font-bold text-red-600 focus:bg-yellow-50"></td></tr>`; });
             container.innerHTML = h + `</tbody></table>`;
             
             kawasanBersih.forEach((kw, i) => { document.getElementById('senaraiKebersihan').innerHTML += `<div class="flex justify-between py-2 border-b items-center"><span class="text-sm font-medium text-gray-700">${kw}</span><div class="segmented-control w-32"><label><input type="radio" name="b_${i}" value="Lemah"><span>L</span></label><label><input type="radio" name="b_${i}" value="Memuaskan" checked><span>M</span></label><label><input type="radio" name="b_${i}" value="Baik"><span>B</span></label></div></div>`; });
@@ -308,18 +305,13 @@
             document.getElementById('tarikh').valueAsDate = new Date(); window.kemaskiniHari();
         };
 
-        // FUNGSI BERSIHKAN BORANG SECARA MANUAL (Bukan Reload)
         const resetBorang = () => {
             document.getElementById('eLaporanForm').reset();
-            window.clearSignature('signPad1');
-            window.clearSignature('signPad2');
-            rekodStaf = [];
-            pStaf();
-            currentEditId = null;
+            window.clearSignature('signPad1'); window.clearSignature('signPad2');
+            rekodStaf = []; pStaf(); currentEditId = null;
             document.getElementById('statusEdit').classList.add('hidden');
             document.getElementById('btnHantar').innerHTML = "HANTAR LAPORAN";
-            document.getElementById('tarikh').valueAsDate = new Date();
-            window.kemaskiniHari();
+            document.getElementById('tarikh').valueAsDate = new Date(); window.kemaskiniHari();
             window.scrollTo(0,0);
         };
 
@@ -339,28 +331,21 @@
                 createdAt: Date.now()
             };
             
-            const btn = document.getElementById('btnHantar'); 
-            btn.disabled = true; 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>MEMPROSES...';
+            document.getElementById('modalLoading').classList.remove('hidden'); document.getElementById('modalLoading').classList.add('flex');
             
             try {
                 if (currentEditId) { 
                     await updateDoc(doc(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru', currentEditId), payload); 
-                    alert("Rekod Laporan Berjaya Dikemaskini!");
                 } else { 
                     await addDoc(collection(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru'), payload); 
-                    alert("Laporan Berjaya Dihantar!");
                 }
                 
-                // Terus ke rekod selepas berjaya
                 resetBorang();
                 window.tukarTab('rekod');
-                
+                document.getElementById('modalLoading').classList.add('hidden');
             } catch(err) { 
                 alert("Ralat: " + err.message); 
-            } finally {
-                btn.disabled = false; 
-                btn.innerHTML = "HANTAR LAPORAN"; 
+                document.getElementById('modalLoading').classList.add('hidden');
             }
         };
 
@@ -376,22 +361,22 @@
             const filterVal = document.getElementById('filterKumpulan').value;
             const c = document.getElementById('containerRekod');
             let filtered = filterVal === "Semua" ? listRekod : listRekod.filter(r => r.kumpulan === filterVal);
-            if(filtered.length === 0) { c.innerHTML = "<div class='text-center py-20 text-gray-400'>Tiada rekod.</div>"; return; }
+            if(filtered.length === 0) { c.innerHTML = "<div class='text-center py-20 text-gray-400'>Tiada rekod laporan.</div>"; return; }
             
             c.innerHTML = filtered.map((r) => `
-                <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col gap-3 border border-gray-100">
+                <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col gap-3 border border-gray-200">
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="font-bold text-sm text-gray-800">${r.tarikh}</h4>
-                            <p class="text-[10px] text-primary font-bold uppercase">${r.kumpulan}</p>
-                            <p class="text-[10px] text-gray-500 mt-1">Oleh: ${r.pencatat}</p>
+                            <p class="text-[10px] text-primary font-bold uppercase mt-1">${r.kumpulan}</p>
+                            <p class="text-[10px] text-gray-500">Oleh: ${r.pencatat}</p>
                         </div>
                     </div>
-                    <div class="flex gap-2 justify-end border-t pt-3">
-                        <button onclick="window.cetakLaporanFromList('${r.docId}')" class="text-indigo-600 p-2 px-3 bg-indigo-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-print"></i> Cetak</button>
-                        <button onclick="window.muatTurunPDFFromList('${r.docId}')" class="text-blue-600 p-2 px-3 bg-blue-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-file-pdf"></i> PDF</button>
-                        <button onclick="window.editById('${r.docId}')" class="text-yellow-600 p-2 px-3 bg-yellow-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-pencil-alt"></i> Edit</button>
-                        <button onclick="window.hapusRekod('${r.docId}')" class="text-red-500 p-2 px-3 bg-red-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-trash"></i> Padam</button>
+                    <div class="grid grid-cols-4 gap-2 border-t pt-3">
+                        <button type="button" onclick="window.cetakLaporanFromList('${r.docId}')" class="text-indigo-600 p-2 bg-indigo-50 rounded font-semibold text-[10px] flex flex-col items-center justify-center gap-1"><i class="fas fa-print text-sm"></i> Cetak</button>
+                        <button type="button" onclick="window.muatTurunPDFFromList('${r.docId}')" class="text-blue-600 p-2 bg-blue-50 rounded font-semibold text-[10px] flex flex-col items-center justify-center gap-1"><i class="fas fa-file-pdf text-sm"></i> PDF</button>
+                        <button type="button" onclick="window.editById('${r.docId}')" class="text-yellow-600 p-2 bg-yellow-50 rounded font-semibold text-[10px] flex flex-col items-center justify-center gap-1"><i class="fas fa-pencil-alt text-sm"></i> Edit</button>
+                        <button type="button" onclick="window.hapusRekod('${r.docId}')" class="text-red-500 p-2 bg-red-50 rounded font-semibold text-[10px] flex flex-col items-center justify-center gap-1"><i class="fas fa-trash text-sm"></i> Padam</button>
                     </div>
                 </div>`).join('');
         };
@@ -422,7 +407,7 @@
         window.batalEdit = () => { resetBorang(); };
         window.hapusRekod = async (id) => { if(confirm("Padam rekod secara kekal?")) await deleteDoc(doc(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru', id)); };
 
-        // ================= TEMPLAT HTML UNTUK CETAK & PDF =================
+        // ================= TEMPLAT HTML (100% TEGUH) UNTUK CETAK & PDF =================
         const getReportHTML = (r, isPrint) => {
             const attendance = JSON.parse(r.kehadiran);
             const kebersihan = JSON.parse(r.kebersihan);
@@ -433,76 +418,74 @@
             const tableRows = attendance.map((tak, i) => {
                 const k = dataKelas[i]; const s = k.j; const h = s - tak; const p = s === 0 ? 0 : Math.round((h/s)*100);
                 gS += s; gT += tak; gH += h;
-                return `<tr><td style="border:1px solid #000; padding:6px; font-size:10pt;">${k.n}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${s}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${tak}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${h}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${p}%</td></tr>`;
+                return `<tr><td style="border:1px solid #000; padding:4px; font-size:9pt;">${k.n}</td><td style="border:1px solid #000; padding:4px; text-align:center; font-size:9pt;">${s}</td><td style="border:1px solid #000; padding:4px; text-align:center; font-size:9pt;">${tak}</td><td style="border:1px solid #000; padding:4px; text-align:center; font-size:9pt;">${h}</td><td style="border:1px solid #000; padding:4px; text-align:center; font-size:9pt;">${p}%</td></tr>`;
             }).join('');
 
-            const containerWidth = isPrint ? '100%' : '1050px';
+            const containerWidth = isPrint ? '100%' : '1024px';
 
             return `
-                <div style="width: ${containerWidth}; padding: 20px; font-family: Arial, sans-serif; background: #fff; color: #000; line-height: 1.4; margin: 0 auto; box-sizing: border-box;">
-                    <div style="text-align:center; border-bottom: 3px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
+                <div style="width: ${containerWidth}; padding: 15px; font-family: Arial, sans-serif; background: #fff; color: #000; line-height: 1.4; margin: 0 auto; box-sizing: border-box;">
+                    <div style="text-align:center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
                         <table style="width:100%; border:none;">
                             <tr>
-                                <td style="width:80px; text-align:left; border:none;">
-                                    <img src="logo.png" style="height: 70px;" onerror="this.style.display='none'"/>
-                                </td>
+                                <td style="width:80px; text-align:left; border:none;"><img src="logo.png" style="height: 60px;" onerror="this.style.display='none'"/></td>
                                 <td style="text-align:center; border:none; vertical-align:middle;">
-                                    <h2 style="margin:0; font-size: 20pt; color: #1e3a8a;">LAPORAN HARIAN GURU BERTUGAS</h2>
-                                    <h3 style="margin:0; font-size: 14pt;">SK PENDIDIKAN KHAS MIRI</h3>
+                                    <h2 style="margin:0; font-size: 16pt; color: #1e3a8a;">LAPORAN HARIAN GURU BERTUGAS</h2>
+                                    <h3 style="margin:0; font-size: 12pt;">SK PENDIDIKAN KHAS MIRI</h3>
                                 </td>
                                 <td style="width:80px; border:none;"></td>
                             </tr>
                         </table>
                     </div>
 
-                    <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed;">
                         <tr>
-                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6; width:15%;">Tarikh</td>
-                            <td style="border:1px solid #000; padding:8px; width:35%;">${r.tarikh}</td>
-                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6; width:15%;">Hari</td>
-                            <td style="border:1px solid #000; padding:8px; width:35%;">${r.hari}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; width:15%; font-size:10pt;">Tarikh</td>
+                            <td style="border:1px solid #000; padding:6px; width:35%; font-size:10pt;">${r.tarikh}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; width:15%; font-size:10pt;">Hari</td>
+                            <td style="border:1px solid #000; padding:6px; width:35%; font-size:10pt;">${r.hari}</td>
                         </tr>
                         <tr>
-                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6;">Kumpulan</td>
-                            <td style="border:1px solid #000; padding:8px;">${r.kumpulan}</td>
-                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6;">Minggu</td>
-                            <td style="border:1px solid #000; padding:8px;">Minggu ${r.minggu}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; font-size:10pt;">Kumpulan</td>
+                            <td style="border:1px solid #000; padding:6px; font-size:10pt;">${r.kumpulan}</td>
+                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; font-size:10pt;">Minggu</td>
+                            <td style="border:1px solid #000; padding:6px; font-size:10pt;">Minggu ${r.minggu}</td>
                         </tr>
                     </table>
 
-                    <table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 10px;">
+                    <table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed;">
                         <tr>
                             <td style="width: 55%; border: none; vertical-align: top; padding-right: 15px;">
-                                <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 11pt; text-align: center;">DATA KEHADIRAN MURID</h4>
-                                <table style="width:100%; border-collapse: collapse;">
+                                <div style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 10pt; font-weight:bold; text-align: center;">DATA KEHADIRAN MURID</div>
+                                <table style="width:100%; border-collapse: collapse; table-layout: fixed;">
                                     <thead><tr style="background:#f3f4f6;">
-                                        <th style="border:1px solid #000; padding:6px; text-align:left; font-size:10pt;">Kelas</th>
-                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">Jumlah</th>
-                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">T.Hadir</th>
-                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">Hadir</th>
-                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">%</th>
+                                        <th style="border:1px solid #000; padding:5px; text-align:left; font-size:9pt; width:36%;">Kelas</th>
+                                        <th style="border:1px solid #000; padding:5px; font-size:9pt; width:16%;">Jumlah</th>
+                                        <th style="border:1px solid #000; padding:5px; font-size:9pt; width:16%;">T.Hadir</th>
+                                        <th style="border:1px solid #000; padding:5px; font-size:9pt; width:16%;">Hadir</th>
+                                        <th style="border:1px solid #000; padding:5px; font-size:9pt; width:16%;">%</th>
                                     </tr></thead>
                                     <tbody>${tableRows}</tbody>
                                     <tr style="font-weight:bold; background:#e5e7eb;">
-                                        <td style="border:1px solid #000; padding:6px; text-align:left;">JUMLAH</td>
-                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gS}</td>
-                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gT}</td>
-                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gH}</td>
-                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gS===0?0:Math.round((gH/gS)*100)}%</td>
+                                        <td style="border:1px solid #000; padding:5px; text-align:left; font-size:9pt;">JUMLAH</td>
+                                        <td style="border:1px solid #000; padding:5px; text-align:center; font-size:9pt;">${gS}</td>
+                                        <td style="border:1px solid #000; padding:5px; text-align:center; font-size:9pt;">${gT}</td>
+                                        <td style="border:1px solid #000; padding:5px; text-align:center; font-size:9pt;">${gH}</td>
+                                        <td style="border:1px solid #000; padding:5px; text-align:center; font-size:9pt;">${gS===0?0:Math.round((gH/gS)*100)}%</td>
                                     </tr>
                                 </table>
                             </td>
                             <td style="width: 45%; border: none; vertical-align: top; padding-left: 15px;">
-                                <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 11pt; text-align: center;">KEBERSIHAN KAWASAN SEKOLAH</h4>
-                                <table style="width:100%; border-collapse: collapse; margin-bottom: 15px;">
-                                    ${kawasanBersih.map((kw, i) => `<tr><td style="border:1px solid #000; padding:6px; width:65%; font-weight:bold; background:#f9fafb; font-size:10pt;">${kw}</td><td style="border:1px solid #000; padding:6px; font-size:10pt; text-align:center;">${kebersihan[i]}</td></tr>`).join('')}
+                                <div style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 10pt; font-weight:bold; text-align: center;">KEBERSIHAN KAWASAN SEKOLAH</div>
+                                <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed;">
+                                    ${kawasanBersih.map((kw, i) => `<tr><td style="border:1px solid #000; padding:5px; width:65%; font-weight:bold; background:#f9fafb; font-size:9pt;">${kw}</td><td style="border:1px solid #000; padding:5px; font-size:9pt; text-align:center;">${kebersihan[i]}</td></tr>`).join('')}
                                 </table>
-                                <div style="border: 1px solid #000; padding:10px; background:#f9fafb; min-height:80px; margin-bottom: 15px; font-size:10pt;">
-                                    <strong>Catatan Disiplin Murid:</strong><br>${r.disiplin || 'Disiplin murid terkawal.'}
+                                <div style="border: 1px solid #000; padding:8px; background:#f9fafb; min-height:60px; margin-bottom: 15px; font-size:9pt; word-wrap: break-word;">
+                                    <strong>Catatan Disiplin:</strong><br>${r.disiplin || 'Terkawal.'}
                                 </div>
-                                <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 11pt; text-align: center;">STAF TIDAK HADIR</h4>
-                                <div style="border: 1px solid #000; padding:10px; min-height:90px; font-size:10pt;">
-                                    <ul style="margin:0; padding-left:20px;">
+                                <div style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 10pt; font-weight:bold; text-align: center;">STAF TIDAK HADIR</div>
+                                <div style="border: 1px solid #000; padding:8px; min-height:80px; font-size:9pt;">
+                                    <ul style="margin:0; padding-left:15px;">
                                         ${staf.length > 0 ? staf.map(s => `<li style="margin-bottom:3px;">${s.n} (${s.s})</li>`).join('') : '<li>Tiada staf tidak hadir.</li>'}
                                     </ul>
                                 </div>
@@ -512,28 +495,28 @@
 
                     <div style="page-break-before: always; margin-top: 30px;"></div>
 
-                    <h4 style="background:#1e3a8a; color:#fff; padding:8px; margin:20px 0 10px 0; font-size: 11pt;">CATATAN PERISTIWA SEMASA</h4>
-                    <table style="width:100%; border-collapse: collapse;">
-                        ${peristiwa.map((txt, i) => `<tr><td style="border:1px solid #000; padding:10px; width:22%; font-weight:bold; background:#f3f4f6; font-size:10pt; vertical-align:top;">${slots[i]}</td><td style="border:1px solid #000; padding:10px; white-space:pre-wrap; font-size:10pt; vertical-align:top;">${txt || '-'}</td></tr>`).join('')}
+                    <div style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 8px 0; font-size: 10pt; font-weight:bold;">CATATAN PERISTIWA SEMASA</div>
+                    <table style="width:100%; border-collapse: collapse; table-layout: fixed;">
+                        ${peristiwa.map((txt, i) => `<tr><td style="border:1px solid #000; padding:8px; width:22%; font-weight:bold; background:#f3f4f6; font-size:9pt; vertical-align:top;">${slots[i]}</td><td style="border:1px solid #000; padding:8px; white-space:pre-wrap; font-size:9pt; vertical-align:top; word-wrap: break-word;">${txt || '-'}</td></tr>`).join('')}
                     </table>
 
-                    <h4 style="background:#1e3a8a; color:#fff; padding:8px; margin:20px 0 10px 0; font-size: 11pt;">ULASAN / REFLEKSI GURU BERTUGAS</h4>
-                    <div style="border: 1px solid #000; padding:15px; min-height:80px; white-space: pre-wrap; font-size: 10pt; background: #fafafa;">${r.ulasan || 'Tiada ulasan tambahan.'}</div>
+                    <div style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 8px 0; font-size: 10pt; font-weight:bold;">ULASAN / REFLEKSI GURU BERTUGAS</div>
+                    <div style="border: 1px solid #000; padding:12px; min-height:60px; white-space: pre-wrap; font-size: 9pt; background: #fafafa; word-wrap: break-word;">${r.ulasan || 'Tiada ulasan tambahan.'}</div>
 
-                    <table style="width:100%; margin-top:50px; border: none; text-align: center;">
+                    <table style="width:100%; margin-top:40px; border: none; text-align: center; table-layout: fixed;">
                         <tr>
                             <td style="width:50%; border: none; vertical-align:bottom;">
-                                <p style="margin:0 0 10px 0; font-size: 11pt; font-weight: bold;">Dicatat Oleh:</p>
-                                <img src="${r.sign1}" style="height:80px; margin: 0 auto;"/><br>
+                                <p style="margin:0 0 10px 0; font-size: 10pt; font-weight: bold;">Dicatat Oleh:</p>
+                                <img src="${r.sign1}" style="height:70px; margin: 0 auto;"/><br>
                                 <div style="border-top: 1px solid #000; width: 70%; margin: 5px auto 0 auto; padding-top: 5px;">
-                                    <strong style="font-size: 11pt;">${r.pencatat}</strong>
+                                    <strong style="font-size: 10pt;">${r.pencatat}</strong>
                                 </div>
                             </td>
                             <td style="width:50%; border: none; vertical-align:bottom;">
-                                <p style="margin:0 0 10px 0; font-size: 11pt; font-weight: bold;">Disemak Oleh:</p>
-                                ${r.sign2 ? `<img src="${r.sign2}" style="height:80px; margin: 0 auto;"/>` : '<div style="height:80px;"></div>'}
+                                <p style="margin:0 0 10px 0; font-size: 10pt; font-weight: bold;">Disemak Oleh:</p>
+                                ${r.sign2 ? `<img src="${r.sign2}" style="height:70px; margin: 0 auto;"/>` : '<div style="height:70px;"></div>'}
                                 <div style="border-top: 1px solid #000; width: 70%; margin: 5px auto 0 auto; padding-top: 5px;">
-                                    <strong style="font-size: 11pt;">${r.penyemak || '<span style="color:#fff;">_</span>'}</strong>
+                                    <strong style="font-size: 10pt;">${r.penyemak || '<span style="color:#fff;">_</span>'}</strong>
                                 </div>
                             </td>
                         </tr>
@@ -541,57 +524,46 @@
                 </div>`;
         };
 
-        // CETAK TERUS SELAMAT (TIDAK MENGGUNAKAN WINDOW.OPEN YANG MENYEBABKAN CRASH)
+        // CETAKAN PINTAR (Bypass popup block)
         window.cetakLaporan = (idx) => {
             const r = listRekod[idx]; if(!r) return;
             const printContent = getReportHTML(r, true);
-            const printArea = document.getElementById('print-area');
-            printArea.innerHTML = printContent;
-            window.print();
+            const printWindow = window.open('', '', 'width=1000,height=800');
+            if(printWindow) {
+                printWindow.document.write(`<html><head><title>Cetak - ${r.tarikh}</title><style>@media print { @page { size: landscape; margin: 10mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }</style></head><body>${printContent}</body></html>`);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+            } else {
+                alert("Sistem Cetak Disekat! Sila benarkan 'Pop-ups' pada browser telefon anda.");
+            }
         };
 
-        // MUAT TURUN PDF (DIOPTIMUMKAN UNTUK KELAJUAN)
+        // MUAT TURUN PDF (ANTI-PUTUS)
         window.muatTurunPDF = (idx) => {
             const r = listRekod[idx]; if(!r) return;
-            const loader = document.createElement('div');
-            loader.className = 'fixed inset-0 z-[200] bg-black/80 flex flex-col items-center justify-center text-white font-bold';
-            loader.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl mb-4"></i>MENJANA PDF... SILA TUNGGU...'; 
-            document.body.appendChild(loader);
+            document.getElementById('modalLoading').classList.remove('hidden');
+            document.getElementById('modalLoading').classList.add('flex');
 
             const htmlContent = getReportHTML(r, false);
             
-            // Bypass Iframe: Lukis DOM terus untuk kelajuan 50% lebih pantas
-            const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.top = '-10000px';
-            tempDiv.style.left = '0';
-            tempDiv.innerHTML = htmlContent;
-            document.body.appendChild(tempDiv);
-            
             const opt = { 
-                margin: [10, 10, 10, 10], 
+                margin: 10, 
                 filename: `LAPORAN_SKPK_${r.tarikh}.pdf`, 
                 image: { type: 'jpeg', quality: 0.95 }, 
-                html2canvas: { 
-                    scale: 1.5, // Diturunkan dari 2.0 untuk mempercepatkan proses. Masih HD untuk cetakan
-                    useCORS: true,
-                    logging: false // Matikan log untuk kurangkan beban CPU
-                }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, 
-                pagebreak: { mode: ['css', 'legacy'] } 
+                html2canvas: { scale: 1.5, useCORS: true, windowWidth: 1050 }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
 
-            // Beri sedikit masa (150ms) untuk DOM rending sepenuhnya sebelum snapshot
+            // Beri masa memori render
             setTimeout(() => {
-                html2pdf().set(opt).from(tempDiv).save().then(() => {
-                    document.body.removeChild(tempDiv);
-                    document.body.removeChild(loader);
+                html2pdf().set(opt).from(htmlContent).save().then(() => {
+                    document.getElementById('modalLoading').classList.add('hidden');
                 }).catch(err => { 
-                    alert("Ralat semasa memproses fail PDF: " + err); 
-                    document.body.removeChild(tempDiv);
-                    document.body.removeChild(loader);
+                    alert("Ralat semasa menjana PDF: " + err); 
+                    document.getElementById('modalLoading').classList.add('hidden');
                 });
-            }, 150);
+            }, 300);
         };
 
         document.addEventListener('DOMContentLoaded', init);
