@@ -128,8 +128,8 @@
     <header class="bg-primary text-white shadow-md sticky top-0 z-50">
         <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="h-10 w-10 bg-white rounded-full flex items-center justify-center text-primary font-bold shadow-sm overflow-hidden">
-                    <img src="logo.png" alt="Logo SKPK Miri" class="h-full w-full object-cover">
+                <div class="h-12 w-12 bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+                    <img src="logo.png" alt="Logo SKPK" class="h-full w-full object-contain p-1" onerror="this.src='https://via.placeholder.com/50?text=SKPK'">
                 </div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold leading-tight">e-Laporan Guru Bertugas</h1>
@@ -207,8 +207,11 @@
                             <option value="Kursus">Kursus</option>
                             <option value="Cuti Sakit">Cuti Sakit</option>
                             <option value="Tugas Luar">Tugas Luar</option>
+                            <option value="Bengkel">Bengkel</option>
+                            <option value="Cuti Bersalin">Cuti Bersalin</option>
+                            <option value="Lain-lain">Lain-lain</option>
                         </select>
-                        <button type="button" onclick="window.tambahStaf()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg">Tambah Staf</button>
+                        <button type="button" onclick="window.tambahStaf()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg transition hover:bg-purple-700">Tambah Staf</button>
                     </div>
                     <div id="displayStafTakHadir" class="space-y-2"></div>
                 </div>
@@ -222,16 +225,16 @@
                             <label class="form-label">Dicatat Oleh <span class="text-red-500">*</span></label>
                             <select id="namaPencatat" required class="form-input mb-2"></select>
                             <div class="signature-container"><canvas id="signPad1" class="signature-pad" width="600" height="300"></canvas></div>
-                            <button type="button" onclick="window.clearSignature('signPad1')" class="text-xs text-red-500 font-bold">Padam Tandatangan</button>
+                            <button type="button" onclick="window.clearSignature('signPad1')" class="text-xs text-red-500 font-bold mt-1">Padam Tandatangan</button>
                         </div>
                         <div>
                             <label class="form-label">Disemak Oleh <span class="text-red-500">*</span></label>
                             <select id="namaPenyemak" required class="form-input mb-2"></select>
                             <div class="signature-container"><canvas id="signPad2" class="signature-pad" width="600" height="300"></canvas></div>
-                            <button type="button" onclick="window.clearSignature('signPad2')" class="text-xs text-red-500 font-bold">Padam Tandatangan</button>
+                            <button type="button" onclick="window.clearSignature('signPad2')" class="text-xs text-red-500 font-bold mt-1">Padam Tandatangan</button>
                         </div>
                     </div>
-                    <button type="submit" id="btnHantar" class="w-full bg-primary text-white font-bold py-4 mt-8 rounded-xl shadow-lg">Hantar Rekod Laporan</button>
+                    <button type="submit" id="btnHantar" class="w-full bg-primary text-white font-bold py-4 mt-8 rounded-xl shadow-lg transition hover:bg-blue-800">Hantar Rekod Laporan</button>
                 </div>
             </form>
         </div>
@@ -255,7 +258,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // DATA INITIALIZATION
+        // DATA KELAS
         const dataKelas = [
             { n: "PRASEKOLAH", j: 7 }, { n: "1 BD", j: 3 }, { n: "3 BD", j: 2 },
             { n: "4 BD", j: 3 }, { n: "5 BD", j: 2 }, { n: "6 BD", j: 2 },
@@ -264,12 +267,25 @@
             { n: "4 BP", j: 4 }, { n: "5 BP", j: 7 }, { n: "6 BP", j: 8 }
         ];
 
+        // DATA STAF (KEMASKINI 2025)
         const stafPentadbir = ["AZIZ BIN TAHIR", "MOHAMAD ABIDIN BIN SIPEK", "LING MEE CHOO", "SALIHIN BIN AHMAD"];
         const stafGuru = [
             "AIDA MASTURINA BINTI HAMKA", "AIFA NUR BESTARI BINTI RADUAN", "BRYAN ANAK CONSTANT", 
-            "CHRISTIAN SIMON", "DLIYANA ANAK JOHN", "VANITHA A/P SUBRAMANIAM", "WONG PICK KING"
+            "CHRISTIAN SIMON", "DLIYANA ANAK JOHN", "EIFILISIA AMBER ANAK MERVIN", 
+            "FAZRI BIN BAKERI", "HAIROL BIN ISMAIL", "HILWA HAYATI BINTI MOHAMAD AJALAN", 
+            "JACQUELINE TIONG HOE DING", "JERIAH ANAK SIMON", "JIMMY ANAK PETER", 
+            "KHAIRI BIN SAHARI", "MARY JANE AMOI UMPANG ANAK DANIEL MAWAT", 
+            "MOHD RAFEEQ BIN SULAIMAN", "MUHAMMAD ZULHUSAINI BIN ABDUL WAHAB", 
+            "NUR HIDAYU BINTI YUSOP", "NURUL HUDA BTE MOHD IHWAN", "NUR AZLIN BINTI NORIZAN", 
+            "NUR FADZLIAH AMAL BINTI OSMAN", "SABARIAH BINTI SOLHI", "SYAEEZA LIANA BINTI RAMLI", 
+            "TENG RU YUN", "TING HUA EE", "TING YU YONG", "VANITHA A/P SUBRAMANIAM", 
+            "WONG PICK KING", "ZEPRINA ANAK BENIK", "NORMIRI BINTI ABDULLAH", 
+            "HAZUANI BINTI HIPNI", "HELLEN RANJA ANAK BELI", "NORAISYAH BINTI ASHARI", 
+            "KAMARIA BINTI BUJANG", "AZENI BIN MAT", "EVELYN SENA ANAK USSIK", 
+            "MARIATI BINTI JULAIHI", "ALEXANDER LIPA ANAK RANTIE"
         ];
 
+        const semuaStaf = [...stafPentadbir, ...stafGuru];
         const kawasanBersih = ["1. BILIK DARJAH", "2. TANDAS", "3. RUANG RMT", "4. PERSEKITARAN SEKOLAH", "5. DEWAN"];
         const slots = ["7.00 - 8.00 pagi", "8.00 - 9.00 pagi", "9.00 - 10.00 pagi", "10.00 - 11.00 pagi", "11.00 - 12.00 tgh", "12.00 - 1.00 tgh"];
 
@@ -277,24 +293,37 @@
         let currentEditId = null;
 
         // FIREBASE SETUP
-        const config = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'e-laporan-skpk';
-        if (config.apiKey) {
-            const app = initializeApp(config);
-            db = getFirestore(app);
-            const auth = getAuth(app);
-            const initAuth = async () => { if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } else { await signInAnonymously(auth); } };
-            initAuth();
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    isReady = true;
-                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru'), (snap) => {
-                        listRekod = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a,b) => b.createdAt - a.createdAt);
-                        if (!document.getElementById('view-rekod').classList.contains('hidden')) window.paparRekod();
+        
+        try {
+            const config = JSON.parse(firebaseConfigStr);
+            if (config.apiKey) {
+                const app = initializeApp(config);
+                db = getFirestore(app);
+                const auth = getAuth(app);
+                
+                const initAuth = async () => {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                };
+                
+                initAuth().then(() => {
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            isReady = true;
+                            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru'), (snap) => {
+                                listRekod = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a,b) => b.createdAt - a.createdAt);
+                                if (!document.getElementById('view-rekod').classList.contains('hidden')) window.paparRekod();
+                            });
+                        }
                     });
-                }
-            });
-        }
+                });
+            }
+        } catch (e) { console.error("Database connection issue", e); }
 
         // SIGNATURE LOGIC
         function setupSign(id) {
@@ -310,10 +339,10 @@
                 return { x: (cx-r.left)*(600/r.width), y: (cy-r.top)*(300/r.height) };
             };
             canvas.addEventListener('mousedown', (e) => { draw = true; pads[id].isSigned = true; const p = getP(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
-            canvas.addEventListener('mousemove', (e) => { if(!draw) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+            canvas.addEventListener('mousemove', (e) => { if(!draw) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.strokeStyle = '#000'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke(); });
             canvas.addEventListener('mouseup', () => draw = false);
             canvas.addEventListener('touchstart', (e) => { e.preventDefault(); draw = true; pads[id].isSigned = true; const p = getP(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, {passive:false});
-            canvas.addEventListener('touchmove', (e) => { if(!draw) return; e.preventDefault(); const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, {passive:false});
+            canvas.addEventListener('touchmove', (e) => { if(!draw) return; e.preventDefault(); const p = getP(e); ctx.lineTo(p.x, p.y); ctx.strokeStyle = '#000'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke(); }, {passive:false});
             canvas.addEventListener('touchend', () => draw = false);
         }
 
@@ -323,24 +352,24 @@
         window.kemaskiniHari = () => { const v = document.getElementById('tarikh').value; if(!v) return; const h = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']; document.getElementById('hari').value = h[new Date(v).getDay()]; };
         window.tambahStaf = () => { const n = document.getElementById('pilihStaf').value, s = document.getElementById('sebabTakHadir').value; if(!n || !s) return; rekodStaf.push({n, s}); pStaf(); };
         window.buangStaf = (i) => { rekodStaf.splice(i, 1); pStaf(); };
-        const pStaf = () => { const c = document.getElementById('displayStafTakHadir'); c.innerHTML = rekodStaf.map((st, i) => `<div class="flex justify-between bg-white p-2 border rounded"><span>${st.n} (${st.s})</span><button type="button" onclick="window.buangStaf(${i})" class="text-red-500 font-bold">Padam</button></div>`).join(''); };
+        const pStaf = () => { const c = document.getElementById('displayStafTakHadir'); c.innerHTML = rekodStaf.map((st, i) => `<div class="flex justify-between bg-white p-2 border rounded items-center"><span>${st.n} (${st.s})</span><button type="button" onclick="window.buangStaf(${i})" class="text-red-500 font-bold p-2"><i class="fas fa-times"></i></button></div>`).join(''); };
 
         // INITIALIZE UI
         const init = () => {
             const container = document.getElementById('senaraiKelasContainer');
             let h = `<table class="w-full text-xs text-left border"><thead><tr class="bg-blue-50"><th class="p-2 border">Kelas</th><th class="p-2 border text-center">T.Hadir</th></tr></thead><tbody>`;
-            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" class="w-10 text-center border"></td></tr>`; });
+            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" class="w-12 text-center border"></td></tr>`; });
             container.innerHTML = h + `</tbody></table>`;
 
             const kb = document.getElementById('senaraiKebersihan');
-            kawasanBersih.forEach((kw, i) => { kb.innerHTML += `<div class="flex justify-between py-2 border-b"><span class="text-sm">${kw}</span><div class="segmented-control w-32"><label><input type="radio" name="b_${i}" value="Lemah"><span>L</span></label><label><input type="radio" name="b_${i}" value="Memuaskan" checked><span>M</span></label><label><input type="radio" name="b_${i}" value="Baik"><span>B</span></label></div></div>`; });
+            kawasanBersih.forEach((kw, i) => { kb.innerHTML += `<div class="flex justify-between py-2 border-b items-center"><span class="text-sm font-medium text-gray-700">${kw}</span><div class="segmented-control w-32"><label><input type="radio" name="b_${i}" value="Lemah"><span>L</span></label><label><input type="radio" name="b_${i}" value="Memuaskan" checked><span>M</span></label><label><input type="radio" name="b_${i}" value="Baik"><span>B</span></label></div></div>`; });
 
             const sc = document.getElementById('slotPeristiwa');
-            slots.forEach((sl, i) => { sc.innerHTML += `<div><label class="form-label text-blue-700">${sl}</label><textarea id="slot_${i}" class="form-input" rows="2"></textarea></div>`; });
+            slots.forEach((sl, i) => { sc.innerHTML += `<div><label class="form-label text-blue-700">${sl}</label><textarea id="slot_${i}" class="form-input" rows="2" placeholder="Masukkan catatan..."></textarea></div>`; });
 
-            const sPS = document.getElementById('pilihStaf'); [...stafPentadbir, ...stafGuru].forEach(n => sPS.add(new Option(n, n)));
-            const sPC = document.getElementById('namaPencatat'); stafGuru.forEach(n => sPC.add(new Option(n, n)));
-            const sPY = document.getElementById('namaPenyemak'); stafPentadbir.forEach(n => sPY.add(new Option(n, n)));
+            const sPS = document.getElementById('pilihStaf'); semuaStaf.sort().forEach(n => sPS.add(new Option(n, n)));
+            const sPC = document.getElementById('namaPencatat'); stafGuru.sort().forEach(n => sPC.add(new Option(n, n)));
+            const sPY = document.getElementById('namaPenyemak'); stafPentadbir.sort().forEach(n => sPY.add(new Option(n, n)));
 
             setupSign('signPad1'); setupSign('signPad2');
             document.getElementById('tarikh').valueAsDate = new Date(); window.kemaskiniHari();
@@ -348,9 +377,9 @@
 
         window.hantarLaporan = async (e) => {
             e.preventDefault();
-            if(!pads['signPad1'].isSigned) return alert("Cikgu wajib menandatangan.");
+            if(!pads['signPad1'].isSigned) return alert("Cikgu wajib menandatangan pada ruangan Dicatat Oleh.");
             
-            const p = {
+            const payload = {
                 tarikh: document.getElementById('tarikh').value, hari: document.getElementById('hari').value, minggu: document.getElementById('minggu').value, kumpulan: document.getElementById('kumpulan').value,
                 kehadiran: JSON.stringify(dataKelas.map((_, i) => parseInt(document.getElementById(`th_${i}`).value) || 0)),
                 kebersihan: JSON.stringify(kawasanBersih.map((_, i) => document.querySelector(`input[name="b_${i}"]:checked`).value)),
@@ -367,10 +396,10 @@
 
             try {
                 if (currentEditId) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'laporan_guru', currentEditId), p);
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'laporan_guru', currentEditId), payload);
                     alert("Rekod berjaya dikemaskini!");
                 } else {
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru'), p);
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'laporan_guru'), payload);
                     alert("Laporan berjaya dihantar ke awan!");
                 }
                 window.location.reload();
@@ -390,14 +419,17 @@
 
         window.paparRekod = () => {
             const c = document.getElementById('containerRekod');
-            if(listRekod.length === 0) { c.innerHTML = "<p class='text-center py-10'>Tiada rekod disimpan.</p>"; return; }
+            if(listRekod.length === 0) { c.innerHTML = "<p class='text-center py-10'>Tiada rekod disimpan di pangkalan data.</p>"; return; }
             c.innerHTML = listRekod.map((r, i) => `
-                <div class="bg-white p-4 rounded-xl shadow flex justify-between items-center">
-                    <div><h4 class="font-bold text-sm">${r.tarikh} (${r.hari})</h4><p class="text-[10px] text-gray-500">${r.kumpulan} &bull; Pencatat: ${r.pencatat}</p></div>
+                <div class="bg-white p-4 rounded-xl shadow flex justify-between items-center transition hover:shadow-md border border-gray-100">
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-800">${r.tarikh} (${r.hari})</h4>
+                        <p class="text-[10px] text-gray-500">${r.kumpulan} &bull; Pencatat: ${r.pencatat}</p>
+                    </div>
                     <div class="flex gap-1">
-                        <button onclick="window.muatTurunPDF(${i})" class="text-blue-500 p-2 bg-blue-50 rounded"><i class="fas fa-file-pdf"></i></button>
-                        <button onclick="window.editRekod(${i})" class="text-yellow-600 p-2 bg-yellow-50 rounded"><i class="fas fa-pencil-alt"></i></button>
-                        <button onclick="window.hapusRekod('${r.docId}')" class="text-red-400 p-2 bg-red-50 rounded"><i class="fas fa-trash"></i></button>
+                        <button onclick="window.muatTurunPDF(${i})" class="text-blue-500 p-2 bg-blue-50 rounded hover:bg-blue-100" title="Download PDF"><i class="fas fa-file-pdf"></i></button>
+                        <button onclick="window.editRekod(${i})" class="text-yellow-600 p-2 bg-yellow-50 rounded hover:bg-yellow-100" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                        <button onclick="window.hapusRekod('${r.docId}')" class="text-red-400 p-2 bg-red-50 rounded hover:bg-red-100" title="Delete"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`).join('');
         };
@@ -406,7 +438,6 @@
             const r = listRekod[idx];
             currentEditId = r.docId;
             
-            // Isi Borang
             document.getElementById('tarikh').value = r.tarikh;
             window.kemaskiniHari();
             document.getElementById('minggu').value = r.minggu;
@@ -416,30 +447,24 @@
             document.getElementById('namaPencatat').value = r.pencatat;
             document.getElementById('namaPenyemak').value = r.penyemak;
 
-            // Isi Kehadiran
             const attendance = JSON.parse(r.kehadiran);
             attendance.forEach((val, i) => { if(document.getElementById(`th_${i}`)) document.getElementById(`th_${i}`).value = val; });
 
-            // Isi Kebersihan
             const clean = JSON.parse(r.kebersihan);
             clean.forEach((val, i) => { 
                 const rad = document.querySelector(`input[name="b_${i}"][value="${val}"]`);
                 if(rad) rad.checked = true;
             });
 
-            // Isi Peristiwa
             const ev = JSON.parse(r.peristiwa);
             ev.forEach((val, i) => { if(document.getElementById(`slot_${i}`)) document.getElementById(`slot_${i}`).value = val; });
 
-            // Isi Staf
             rekodStaf = JSON.parse(r.staf);
             pStaf();
 
-            // Sediakan Signature (Draw back to canvas)
             const img1 = new Image(); img1.src = r.sign1; img1.onload = () => pads['signPad1'].ctx.drawImage(img1, 0, 0); pads['signPad1'].isSigned = true;
             if (r.sign2) { const img2 = new Image(); img2.src = r.sign2; img2.onload = () => pads['signPad2'].ctx.drawImage(img2, 0, 0); pads['signPad2'].isSigned = true; }
 
-            // UI
             document.getElementById('statusEdit').classList.remove('hidden');
             document.getElementById('btnHantar').innerHTML = "Kemaskini Laporan";
             window.tukarTab('borang');
@@ -448,14 +473,14 @@
 
         window.batalEdit = () => { window.location.reload(); };
 
-        window.hapusRekod = async (id) => { if(confirm("Adakah cikgu pasti mahu memadam rekod ini secara kekal?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'laporan_guru', id)); };
+        window.hapusRekod = async (id) => { if(confirm("Adakah cikgu pasti mahu memadam rekod ini secara kekal dari pangkalan data sekolah? Semua guru tidak akan dapat melihatnya lagi.")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'laporan_guru', id)); };
 
         // GENERATE PDF LANDSCAPE
         window.muatTurunPDF = (idx) => {
             const r = listRekod[idx]; if(!r) return;
             const l = document.createElement('div');
-            l.className = 'fixed inset-0 z-[200] bg-black/80 flex items-center justify-center text-white font-bold';
-            l.innerHTML = 'MENJANA PDF LANDSCAPE...'; document.body.appendChild(l);
+            l.className = 'fixed inset-0 z-[200] bg-black/80 flex flex-col items-center justify-center text-white font-bold backdrop-blur-sm';
+            l.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl mb-4"></i>MENJANA PDF LANDSCAPE...'; document.body.appendChild(l);
 
             const attendance = JSON.parse(r.kehadiran);
             const kebersihan = JSON.parse(r.kebersihan);
@@ -470,10 +495,13 @@
             }).join('');
 
             const htmlContent = `
-                <div style="width: 1000px; padding: 20px; font-family: Arial; font-size: 10pt; background: #fff;">
-                    <div style="text-align:center; border-bottom: 3px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
-                        <h2 style="margin:0; font-size: 18pt;">LAPORAN HARIAN GURU BERTUGAS</h2>
-                        <h3 style="margin:0; font-size: 13pt;">SK PENDIDIKAN KHAS MIRI</h3>
+                <div style="width: 1000px; padding: 25px; font-family: Arial, sans-serif; font-size: 10pt; background: #fff; line-height: 1.4;">
+                    <div style="text-align:center; border-bottom: 3px solid #1e3a8a; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+                        <img src="logo.png" style="height: 60px;" onerror="this.style.display='none'"/>
+                        <div>
+                            <h2 style="margin:0; font-size: 18pt; color: #1e3a8a;">LAPORAN HARIAN GURU BERTUGAS</h2>
+                            <h3 style="margin:0; font-size: 13pt;">SK PENDIDIKAN KHAS MIRI</h3>
+                        </div>
                     </div>
 
                     <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed;">
@@ -493,7 +521,7 @@
 
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
-                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0;">MAKLUMAT KEHADIRAN MURID</h4>
+                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0; border-radius: 2px;">MAKLUMAT KEHADIRAN MURID</h4>
                             <table style="width:100%; border-collapse: collapse; table-layout: fixed; font-size: 9pt;">
                                 <thead><tr style="background:#f3f4f6;">
                                     <th style="border:1px solid #000; padding:4px; text-align:left; width:36%;">Kelas</th>
@@ -513,46 +541,56 @@
                             </table>
                         </div>
                         <div style="flex: 1;">
-                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0;">KEBERSIHAN & DISIPLIN</h4>
-                            <table style="width:100%; border-collapse: collapse; margin-bottom: 10px;">
-                                ${kawasanBersih.map((kw, i) => `<tr><td style="border:1px solid #000; padding:6px; width:50%; font-weight:bold;">${kw}</td><td style="border:1px solid #000; padding:6px;">${kebersihan[i]}</td></tr>`).join('')}
+                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0; border-radius: 2px;">KEBERSIHAN & DISIPLIN</h4>
+                            <table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
+                                ${kawasanBersih.map((kw, i) => `<tr><td style="border:1px solid #000; padding:6px; width:50%; font-weight:bold; background:#f9fafb;">${kw}</td><td style="border:1px solid #000; padding:6px;">${kebersihan[i]}</td></tr>`).join('')}
                             </table>
-                            <div style="border: 1px solid #000; padding:8px; background:#f9fafb; min-height:80px; margin-bottom: 15px;">
+                            <div style="border: 1px solid #000; padding:8px; background:#f9fafb; min-height:80px; margin-bottom: 15px; border-radius: 4px;">
                                 <strong>Disiplin Murid:</strong><br>${r.disiplin || 'Tiada catatan khusus.'}
                             </div>
-                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 5px 0;">KEBERADAAN STAF</h4>
-                            <ul style="margin:0; padding-left:20px;">${staf.length > 0 ? staf.map(s => `<li>${s.n} (${s.s})</li>`).join('') : 'Semua staf hadir.'}</ul>
+                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0; border-radius: 2px;">KEBERADAAN STAF</h4>
+                            <ul style="margin:0; padding-left:20px; font-size: 9pt;">${staf.length > 0 ? staf.map(s => `<li>${s.n} (${s.s})</li>`).join('') : 'Semua staf hadir.'}</ul>
                         </div>
                     </div>
 
                     <div class="html2pdf__page-break"></div>
 
-                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0;">CATATAN PERISTIWA SEMASA</h4>
+                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0; border-radius: 2px;">CATATAN PERISTIWA SEMASA</h4>
                     <table style="width:100%; border-collapse: collapse; table-layout: fixed;">
                         ${peristiwa.map((txt, i) => `<tr><td style="border:1px solid #000; padding:6px; width:20%; font-weight:bold; background:#f3f4f6;">${slots[i]}</td><td style="border:1px solid #000; padding:6px; white-space:pre-wrap;">${txt || '-'}</td></tr>`).join('')}
                     </table>
 
-                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0;">ULASAN / CADANGAN / REFLEKSI</h4>
-                    <div style="border: 1px solid #000; padding:8px; min-height:50px; white-space: pre-wrap;">${r.ulasan || 'Tiada ulasan.'}</div>
+                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0; border-radius: 2px;">ULASAN / CADANGAN / REFLEKSI</h4>
+                    <div style="border: 1px solid #000; padding:8px; min-height:50px; white-space: pre-wrap; border-radius: 4px; background: #fafafa;">${r.ulasan || 'Tiada ulasan.'}</div>
 
-                    <table style="width:100%; margin-top:30px;">
+                    <table style="width:100%; margin-top:40px;">
                         <tr>
                             <td style="width:50%; vertical-align:bottom;">
-                                <p style="margin:0;">Dicatat Oleh:</p>
-                                <img src="${r.sign1}" style="height:60px; margin: 5px 0;"/><br>
-                                <strong>${r.pencatat}</strong>
+                                <p style="margin:0; font-size: 9pt;">Dicatat Oleh:</p>
+                                <img src="${r.sign1}" style="height:70px; margin: 5px 0;"/><br>
+                                <strong style="text-decoration: underline;">${r.pencatat}</strong>
                             </td>
                             <td style="width:50%; vertical-align:bottom;">
-                                <p style="margin:0;">Disemak Oleh:</p>
-                                ${r.sign2 ? `<img src="${r.sign2}" style="height:60px; margin: 5px 0;"/>` : '<div style="height:60px;"></div>'}<br>
-                                <strong>${r.penyemak}</strong>
+                                <p style="margin:0; font-size: 9pt;">Disemak Oleh:</p>
+                                ${r.sign2 ? `<img src="${r.sign2}" style="height:70px; margin: 5px 0;"/>` : '<div style="height:70px;"></div>'}<br>
+                                <strong style="text-decoration: underline;">${r.penyemak}</strong>
                             </td>
                         </tr>
                     </table>
                 </div>`;
 
-            const opt = { margin: 10, filename: `LAPORAN_${r.tarikh}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, windowWidth: 1050 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: ['css', 'legacy'] } };
-            html2pdf().set(opt).from(htmlContent).save().then(() => document.body.removeChild(l));
+            const opt = { 
+                margin: 10, 
+                filename: `LAPORAN_GURU_${r.tarikh}.pdf`, 
+                image: { type: 'jpeg', quality: 0.98 }, 
+                html2canvas: { scale: 2, useCORS: true, windowWidth: 1050 }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, 
+                pagebreak: { mode: ['css', 'legacy'] } 
+            };
+            html2pdf().set(opt).from(htmlContent).save().then(() => document.body.removeChild(l)).catch(err => {
+                alert("Ralat menjana PDF: " + err);
+                document.body.removeChild(l);
+            });
         };
 
         document.addEventListener('DOMContentLoaded', init);
