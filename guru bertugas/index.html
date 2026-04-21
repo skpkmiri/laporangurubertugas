@@ -26,7 +26,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
-        .section-card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 1.5rem; margin-bottom: 1.5rem; border-top: 4px solid var(--color-primary); }
+        .section-card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; border-top: 4px solid var(--color-primary); }
         .section-title { font-size: 1.125rem; font-weight: 700; color: #1e3a8a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
         .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: #4b5563; margin-bottom: 0.5rem; }
         .form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; background-color: #f9fafb; transition: all 0.2s; }
@@ -39,6 +39,15 @@
         .signature-container { border: 2px dashed #cbd5e1; border-radius: 8px; background-color: #fff; position: relative; touch-action: none; }
         canvas.signature-pad { width: 100%; height: 150px; border-radius: 8px; cursor: crosshair; }
         .required-star { color: #ef4444; margin-left: 2px; }
+
+        /* Khas Untuk Fungsi Cetakan Sahaja */
+        #print-area { display: none; }
+        @media print {
+            body { background-color: white; }
+            header, main, nav, .fixed { display: none !important; }
+            #print-area { display: block !important; width: 100%; margin: 0; padding: 0; }
+            @page { size: landscape; margin: 10mm; }
+        }
     </style>
 </head>
 <body class="pb-20">
@@ -59,33 +68,31 @@
 
     <main class="max-w-2xl mx-auto p-4">
         
-        <!-- VIEW: BORANG -->
+        <!-- ================= VIEW: BORANG ================= -->
         <div id="view-borang">
             <div id="statusEdit" class="hidden mb-4 bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded text-yellow-700 font-bold flex justify-between items-center shadow-sm">
-                <span><i class="fas fa-edit mr-2"></i> Anda sedang mengemaskini rekod laporan.</span>
+                <span><i class="fas fa-edit mr-2"></i> Mengemaskini rekod laporan.</span>
                 <button onclick="window.batalEdit()" class="text-xs bg-yellow-500 text-white px-3 py-1 rounded-full font-bold">BATAL</button>
             </div>
             
             <form id="eLaporanForm" onsubmit="window.hantarLaporan(event)">
-
-                <!-- 1. MAKLUMAT ASAS -->
                 <div class="section-card">
                     <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Maklumat Asas</h2>
                     <div class="mb-4">
-                        <label class="form-label">Tarikh <span class="required-star">*</span></label>
+                        <label class="form-label text-primary">Tarikh <span class="required-star">*</span></label>
                         <input type="date" id="tarikh" required class="form-input" onchange="window.kemaskiniHari()">
                     </div>
                     <div class="mb-4">
-                        <label class="form-label">Hari</label>
+                        <label class="form-label text-gray-500">Hari</label>
                         <input type="text" id="hari" readonly class="form-input bg-gray-100">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="form-label">Minggu Ke- <span class="required-star">*</span></label>
+                            <label class="form-label text-primary">Minggu Ke- <span class="required-star">*</span></label>
                             <input type="number" id="minggu" required min="1" max="52" class="form-input">
                         </div>
                         <div>
-                            <label class="form-label">Kumpulan <span class="required-star">*</span></label>
+                            <label class="form-label text-primary">Kumpulan <span class="required-star">*</span></label>
                             <select id="kumpulan" required class="form-input">
                                 <option value="">-- Pilih --</option>
                                 <option value="Kumpulan 1">Kumpulan 1</option>
@@ -98,28 +105,24 @@
                     </div>
                 </div>
 
-                <!-- 2. KEHADIRAN -->
                 <div class="section-card border-t-accent">
                     <h2 class="section-title"><i class="fas fa-user-graduate"></i> Kehadiran Murid</h2>
-                    <p class="text-[10px] text-red-500 mb-3 font-semibold">* Hanya isikan bilangan murid TIDAK HADIR.</p>
+                    <p class="text-[10px] text-red-500 mb-3 font-semibold">* Isikan bilangan murid TIDAK HADIR sahaja.</p>
                     <div id="senaraiKelasContainer"></div>
                 </div>
 
-                <!-- 3. KEBERSIHAN -->
                 <div class="section-card border-t-blue-500">
                     <h2 class="section-title"><i class="fas fa-broom"></i> Kebersihan & Disiplin</h2>
                     <div id="senaraiKebersihan" class="space-y-3 mb-6"></div>
-                    <label class="form-label">Catatan Disiplin Murid</label>
-                    <textarea id="catatan_disiplin" rows="3" class="form-input" placeholder="Cth: Disiplin terkawal."></textarea>
+                    <label class="form-label text-primary">Catatan Disiplin Murid</label>
+                    <textarea id="catatan_disiplin" rows="3" class="form-input" placeholder="Cth: Disiplin murid dalam keadaan terkawal."></textarea>
                 </div>
 
-                <!-- 4. PERISTIWA -->
                 <div class="section-card border-t-yellow-500">
                     <h2 class="section-title"><i class="fas fa-clock"></i> Catatan Peristiwa Semasa</h2>
                     <div id="slotPeristiwa" class="space-y-4"></div>
                 </div>
 
-                <!-- 5. STAF -->
                 <div class="section-card border-t-purple-500">
                     <h2 class="section-title"><i class="fas fa-chalkboard-teacher"></i> Keberadaan Staf</h2>
                     <div class="bg-purple-50 p-4 rounded-lg mb-4 border border-purple-100">
@@ -134,42 +137,41 @@
                             <option value="Cuti Bersalin">Cuti Bersalin</option>
                             <option value="Lain-lain">Lain-lain</option>
                         </select>
-                        <button type="button" onclick="window.tambahStaf()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg transition hover:bg-purple-700">Tambah Rekod</button>
+                        <button type="button" onclick="window.tambahStaf()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg shadow-sm transition hover:bg-purple-700">Tambah Rekod Staf</button>
                     </div>
                     <div id="displayStafTakHadir" class="space-y-2"></div>
                 </div>
 
-                <!-- 6. PENGESAHAN -->
                 <div class="section-card border-t-gray-800">
                     <h2 class="section-title"><i class="fas fa-pen-nib"></i> Ulasan & Pengesahan</h2>
-                    <textarea id="ulasan" rows="3" class="form-input mb-6" placeholder="Ulasan / Cadangan / Refleksi"></textarea>
+                    <textarea id="ulasan" rows="3" class="form-input mb-6" placeholder="Ulasan / Cadangan / Refleksi Guru Bertugas"></textarea>
                     
                     <div class="grid grid-cols-1 gap-8">
                         <div class="p-4 border border-gray-100 rounded-lg bg-gray-50/50">
-                            <label class="form-label">Dicatat Oleh <span class="required-star">*</span></label>
-                            <select id="namaPencatat" required class="form-input mb-2 border-primary/20 font-bold text-primary"></select>
-                            <div class="signature-container mb-2"><canvas id="signPad1" class="signature-pad" width="600" height="300"></canvas></div>
-                            <button type="button" onclick="window.clearSignature('signPad1')" class="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">Padam</button>
+                            <label class="form-label text-primary font-bold">Dicatat Oleh <span class="required-star">*</span></label>
+                            <select id="namaPencatat" required class="form-input mb-2 border-primary/20"></select>
+                            <div class="signature-container mb-2 shadow-inner"><canvas id="signPad1" class="signature-pad" width="600" height="300"></canvas></div>
+                            <button type="button" onclick="window.clearSignature('signPad1')" class="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">Padam Tandatangan</button>
                         </div>
                         <div class="p-4 border border-gray-100 rounded-lg bg-gray-50/50">
-                            <label class="form-label">Disemak Oleh (Opsional)</label>
-                            <select id="namaPenyemak" class="form-input mb-2 border-accent/20 font-bold text-accent"></select>
-                            <div class="signature-container mb-2"><canvas id="signPad2" class="signature-pad" width="600" height="300"></canvas></div>
-                            <button type="button" onclick="window.clearSignature('signPad2')" class="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">Padam</button>
+                            <label class="form-label text-accent font-bold">Disemak Oleh (Opsional)</label>
+                            <select id="namaPenyemak" class="form-input mb-2 border-accent/20"></select>
+                            <div class="signature-container mb-2 shadow-inner"><canvas id="signPad2" class="signature-pad" width="600" height="300"></canvas></div>
+                            <button type="button" onclick="window.clearSignature('signPad2')" class="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">Padam Tandatangan</button>
                         </div>
                     </div>
-                    <button type="submit" id="btnHantar" class="w-full bg-primary text-white font-bold py-5 mt-8 rounded-xl shadow-lg transition hover:bg-blue-800 text-lg uppercase">Hantar Laporan</button>
+                    <button type="submit" id="btnHantar" class="w-full bg-primary text-white font-bold py-5 mt-8 rounded-xl shadow-lg transition hover:bg-blue-800 text-lg tracking-widest">HANTAR LAPORAN</button>
                 </div>
             </form>
         </div>
 
-        <!-- VIEW: REKOD -->
+        <!-- ================= VIEW: REKOD ================= -->
         <div id="view-rekod" class="hidden">
             <div class="flex flex-col gap-4 mb-6">
-                <h2 class="text-xl font-bold text-primary"><i class="fas fa-history mr-2"></i> Rekod Laporan Semua Guru</h2>
+                <h2 class="text-xl font-bold text-primary"><i class="fas fa-folder-open mr-2"></i> Rekod Laporan</h2>
                 
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                    <label class="form-label text-blue-800 text-xs">Tapis Mengikut Kumpulan:</label>
+                    <label class="form-label text-blue-800 text-xs font-bold">Tapis Mengikut Kumpulan:</label>
                     <select id="filterKumpulan" onchange="window.paparRekod()" class="form-input border-blue-200">
                         <option value="Semua">-- Semua Kumpulan --</option>
                         <option value="Kumpulan 1">Kumpulan 1</option>
@@ -184,20 +186,18 @@
         </div>
     </main>
 
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-lg flex h-16">
-        <button onclick="window.tukarTab('borang')" id="btn-borang" class="flex-1 text-primary font-bold border-t-4 border-primary bg-blue-50/50 flex flex-col items-center justify-center gap-1 transition-all"><i class="fas fa-edit"></i><span class="text-[10px]">BORANG</span></button>
-        <button onclick="window.tukarTab('rekod')" id="btn-rekod" class="flex-1 text-gray-400 font-bold border-t-4 border-transparent flex flex-col items-center justify-center gap-1 transition-all"><i class="fas fa-folder-open"></i><span class="text-[10px]">REKOD LAPORAN</span></button>
+    <!-- Navigasi Bawah -->
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex h-16">
+        <button onclick="window.tukarTab('borang')" id="btn-borang" class="flex-1 text-primary font-bold border-t-4 border-primary bg-blue-50 flex flex-col items-center justify-center gap-1 transition-all">
+            <i class="fas fa-edit"></i><span class="text-[10px]">BORANG</span>
+        </button>
+        <button onclick="window.tukarTab('rekod')" id="btn-rekod" class="flex-1 text-gray-400 font-bold border-t-4 border-transparent flex flex-col items-center justify-center gap-1 transition-all">
+            <i class="fas fa-history"></i><span class="text-[10px]">REKOD LAPORAN</span>
+        </button>
     </nav>
 
-    <!-- Modal Success -->
-    <div id="modalSuccess" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-2xl text-center max-w-sm w-full shadow-2xl">
-            <div class="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-check text-2xl text-green-600"></i></div>
-            <h3 class="text-xl font-bold mb-2">Berjaya!</h3>
-            <p class="text-sm text-gray-500 mb-6">Rekod telah disimpan ke Cloud Firestore.</p>
-            <button onclick="window.location.reload()" class="w-full bg-primary text-white py-3 rounded-lg font-bold">Siap</button>
-        </div>
-    </div>
+    <!-- Ruangan Tersembunyi Khas Untuk Fungsi Cetakan Terus -->
+    <div id="print-area"></div>
 
     <!-- Firebase SDK Modules -->
     <script type="module">
@@ -205,15 +205,14 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURATION FIREBASE
+        // Konfigurasi Firebase Cikgu
         const firebaseConfig = {
           apiKey: "AIzaSyDPO6aTZaGonzq4-xWlfpYffym4mKXQUW0",
           authDomain: "laporan-guru-bertugas-9c7fe.firebaseapp.com",
           projectId: "laporan-guru-bertugas-9c7fe",
           storageBucket: "laporan-guru-bertugas-9c7fe.firebasestorage.app",
           messagingSenderId: "1093156823942",
-          appId: "1:1093156823942:web:08598b790d4b5282c54207",
-          measurementId: "G-4ERJRQG618"
+          appId: "1:1093156823942:web:08598b790d4b5282c54207"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -221,7 +220,6 @@
         const auth = getAuth(app);
         const appIdInternal = 'skpk-miri-report-system';
 
-        // DATA KELAS
         const dataKelas = [
             { n: "PRASEKOLAH", j: 7 }, { n: "1 BD", j: 3 }, { n: "3 BD", j: 2 },
             { n: "4 BD", j: 3 }, { n: "5 BD", j: 2 }, { n: "6 BD", j: 2 },
@@ -230,7 +228,6 @@
             { n: "4 BP", j: 4 }, { n: "5 BP", j: 7 }, { n: "6 BP", j: 8 }
         ];
 
-        // STAFF DATA 2025
         const stafPentadbir = ["AZIZ BIN TAHIR", "MOHAMAD ABIDIN BIN SIPEK", "LING MEE CHOO", "SALIHIN BIN AHMAD"];
         const stafGuru = [
             "AIDA MASTURINA BINTI HAMKA", "AIFA NUR BESTARI BINTI RADUAN", "BRYAN ANAK CONSTANT", 
@@ -255,7 +252,6 @@
         let isReady = false, listRekod = [], rekodStaf = [], pads = {};
         let currentEditId = null;
 
-        // AUTH & LISTENERS
         signInAnonymously(auth).then(() => {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
@@ -268,7 +264,6 @@
             });
         });
 
-        // CANVAS LOGIC
         function setupSign(id) {
             const canvas = document.getElementById(id);
             const ctx = canvas.getContext('2d');
@@ -295,24 +290,43 @@
         window.buangStaf = (i) => { rekodStaf.splice(i, 1); pStaf(); };
         const pStaf = () => { const c = document.getElementById('displayStafTakHadir'); c.innerHTML = rekodStaf.map((st, i) => `<div class="flex justify-between bg-white p-2 border rounded items-center"><span>${st.n} (${st.s})</span><button type="button" onclick="window.buangStaf(${i})" class="text-red-500 font-bold p-2"><i class="fas fa-times"></i></button></div>`).join(''); };
 
-        // INIT UI
         const init = () => {
             const container = document.getElementById('senaraiKelasContainer');
-            let h = `<table class="w-full text-[10px] text-left border border-gray-200 rounded overflow-hidden"><thead><tr class="bg-primary text-white"><th class="p-2 border border-blue-900">Kelas</th><th class="p-2 border border-blue-900 text-center">T.Hadir</th></tr></thead><tbody>`;
-            dataKelas.forEach((k, i) => { h += `<tr class="bg-white"><td class="p-2 border font-bold text-gray-700">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" min="0" max="${k.j}" class="w-12 text-center border p-1 rounded font-bold text-red-600 focus:bg-yellow-50"></td></tr>`; });
+            let h = `<table class="w-full text-[11px] text-left border"><thead><tr class="bg-primary text-white"><th class="p-2 border">Kelas</th><th class="p-2 border text-center">T.Hadir</th></tr></thead><tbody>`;
+            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold text-gray-700">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" min="0" max="${k.j}" class="w-12 text-center border p-1 rounded font-bold text-red-600 focus:bg-yellow-50"></td></tr>`; });
             container.innerHTML = h + `</tbody></table>`;
+            
             kawasanBersih.forEach((kw, i) => { document.getElementById('senaraiKebersihan').innerHTML += `<div class="flex justify-between py-2 border-b items-center"><span class="text-sm font-medium text-gray-700">${kw}</span><div class="segmented-control w-32"><label><input type="radio" name="b_${i}" value="Lemah"><span>L</span></label><label><input type="radio" name="b_${i}" value="Memuaskan" checked><span>M</span></label><label><input type="radio" name="b_${i}" value="Baik"><span>B</span></label></div></div>`; });
-            slots.forEach((sl, i) => { document.getElementById('slotPeristiwa').innerHTML += `<div><label class="form-label text-blue-700 font-bold">${sl}</label><textarea id="slot_${i}" class="form-input" rows="2" placeholder="Sila catat maklumat di sini..."></textarea></div>`; });
+            
+            slots.forEach((sl, i) => { document.getElementById('slotPeristiwa').innerHTML += `<div><label class="form-label text-blue-700 font-bold text-xs">${sl}</label><textarea id="slot_${i}" class="form-input" rows="2" placeholder="Catatan peristiwa..."></textarea></div>`; });
+            
             const sPS = document.getElementById('pilihStaf'); semuaStaf.forEach(n => sPS.add(new Option(n, n)));
             const sPC = document.getElementById('namaPencatat'); stafGuru.sort().forEach(n => sPC.add(new Option(n, n)));
-            const sPY = document.getElementById('namaPenyemak'); stafPentadbir.forEach(n => sPY.add(new Option(n, n)));
+            const sPY = document.getElementById('namaPenyemak'); stafPentadbir.sort().forEach(n => sPY.add(new Option(n, n)));
+            
             setupSign('signPad1'); setupSign('signPad2');
             document.getElementById('tarikh').valueAsDate = new Date(); window.kemaskiniHari();
         };
 
+        // FUNGSI BERSIHKAN BORANG SECARA MANUAL (Bukan Reload)
+        const resetBorang = () => {
+            document.getElementById('eLaporanForm').reset();
+            window.clearSignature('signPad1');
+            window.clearSignature('signPad2');
+            rekodStaf = [];
+            pStaf();
+            currentEditId = null;
+            document.getElementById('statusEdit').classList.add('hidden');
+            document.getElementById('btnHantar').innerHTML = "HANTAR LAPORAN";
+            document.getElementById('tarikh').valueAsDate = new Date();
+            window.kemaskiniHari();
+            window.scrollTo(0,0);
+        };
+
         window.hantarLaporan = async (e) => {
             e.preventDefault();
-            if(!pads['signPad1'].isSigned) return alert("Cikgu wajib menandatangan pada bahagian 'Dicatat Oleh'.");
+            if(!pads['signPad1'].isSigned) return alert("Sila turunkan tandatangan pada 'Dicatat Oleh'.");
+            
             const payload = {
                 tarikh: document.getElementById('tarikh').value, hari: document.getElementById('hari').value, minggu: document.getElementById('minggu').value, kumpulan: document.getElementById('kumpulan').value,
                 kehadiran: JSON.stringify(dataKelas.map((_, i) => parseInt(document.getElementById(`th_${i}`).value) || 0)),
@@ -324,19 +338,37 @@
                 sign2: pads['signPad2'].isSigned ? pads['signPad2'].canvas.toDataURL('image/png') : null,
                 createdAt: Date.now()
             };
-            const btn = document.getElementById('btnHantar'); btn.disabled = true; btn.innerHTML = "Diproses...";
+            
+            const btn = document.getElementById('btnHantar'); 
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>MEMPROSES...';
+            
             try {
-                if (currentEditId) { await updateDoc(doc(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru', currentEditId), payload); }
-                else { await addDoc(collection(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru'), payload); }
-                document.getElementById('modalSuccess').classList.remove('hidden'); document.getElementById('modalSuccess').classList.add('flex');
-            } catch(err) { alert("Ralat: " + err.message); btn.disabled = false; btn.innerHTML = "Hantar Laporan"; }
+                if (currentEditId) { 
+                    await updateDoc(doc(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru', currentEditId), payload); 
+                    alert("Rekod Laporan Berjaya Dikemaskini!");
+                } else { 
+                    await addDoc(collection(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru'), payload); 
+                    alert("Laporan Berjaya Dihantar!");
+                }
+                
+                // Terus ke rekod selepas berjaya
+                resetBorang();
+                window.tukarTab('rekod');
+                
+            } catch(err) { 
+                alert("Ralat: " + err.message); 
+            } finally {
+                btn.disabled = false; 
+                btn.innerHTML = "HANTAR LAPORAN"; 
+            }
         };
 
         window.tukarTab = (t) => {
             document.getElementById('view-borang').classList.toggle('hidden', t !== 'borang');
             document.getElementById('view-rekod').classList.toggle('hidden', t !== 'rekod');
-            document.getElementById('btn-borang').className = t === 'borang' ? 'flex-1 text-center text-primary font-bold border-t-4 border-primary bg-blue-50/50 flex flex-col items-center justify-center gap-1 transition-all' : 'flex-1 text-center text-gray-400 font-bold border-t-4 border-transparent flex flex-col items-center justify-center gap-1 transition-all';
-            document.getElementById('btn-rekod').className = t === 'rekod' ? 'flex-1 text-center text-primary font-bold border-t-4 border-primary bg-blue-50/50 flex flex-col items-center justify-center gap-1 transition-all' : 'flex-1 text-center text-gray-400 font-bold border-t-4 border-transparent flex flex-col items-center justify-center gap-1 transition-all';
+            document.getElementById('btn-borang').className = t === 'borang' ? 'flex-1 text-primary font-bold border-t-4 border-primary bg-blue-50 flex flex-col items-center justify-center gap-1 transition-all' : 'flex-1 text-gray-400 font-bold border-t-4 border-transparent flex flex-col items-center justify-center gap-1 transition-all';
+            document.getElementById('btn-rekod').className = t === 'rekod' ? 'flex-1 text-primary font-bold border-t-4 border-primary bg-blue-50 flex flex-col items-center justify-center gap-1 transition-all' : 'flex-1 text-gray-400 font-bold border-t-4 border-transparent flex flex-col items-center justify-center gap-1 transition-all';
             if(t === 'rekod') window.paparRekod();
         };
 
@@ -344,102 +376,222 @@
             const filterVal = document.getElementById('filterKumpulan').value;
             const c = document.getElementById('containerRekod');
             let filtered = filterVal === "Semua" ? listRekod : listRekod.filter(r => r.kumpulan === filterVal);
-            if(filtered.length === 0) { c.innerHTML = "<div class='text-center py-20 text-gray-400'>Tiada rekod disimpan untuk kategori ini.</div>"; return; }
-            c.innerHTML = filtered.map((r) => `<div class="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center border border-gray-100 transition hover:border-primary/30"><div><h4 class="font-bold text-sm text-gray-800">${r.tarikh}</h4><p class="text-[10px] text-primary uppercase font-bold">${r.kumpulan}</p><p class="text-[8px] text-gray-400">Oleh: ${r.pencatat}</p></div><div class="flex gap-1">
-                <button onclick="window.muatTurunPDFFromList('${r.docId}')" class="text-blue-500 p-2 bg-blue-50 rounded"><i class="fas fa-file-pdf"></i></button>
-                <button onclick="window.editById('${r.docId}')" class="text-yellow-600 p-2 bg-yellow-50 rounded"><i class="fas fa-pencil-alt"></i></button>
-                <button onclick="window.hapusRekod('${r.docId}')" class="text-red-400 p-2 bg-red-50 rounded"><i class="fas fa-trash"></i></button></div></div>`).join('');
+            if(filtered.length === 0) { c.innerHTML = "<div class='text-center py-20 text-gray-400'>Tiada rekod.</div>"; return; }
+            
+            c.innerHTML = filtered.map((r) => `
+                <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col gap-3 border border-gray-100">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">${r.tarikh}</h4>
+                            <p class="text-[10px] text-primary font-bold uppercase">${r.kumpulan}</p>
+                            <p class="text-[10px] text-gray-500 mt-1">Oleh: ${r.pencatat}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 justify-end border-t pt-3">
+                        <button onclick="window.cetakLaporanFromList('${r.docId}')" class="text-indigo-600 p-2 px-3 bg-indigo-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-print"></i> Cetak</button>
+                        <button onclick="window.muatTurunPDFFromList('${r.docId}')" class="text-blue-600 p-2 px-3 bg-blue-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-file-pdf"></i> PDF</button>
+                        <button onclick="window.editById('${r.docId}')" class="text-yellow-600 p-2 px-3 bg-yellow-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-pencil-alt"></i> Edit</button>
+                        <button onclick="window.hapusRekod('${r.docId}')" class="text-red-500 p-2 px-3 bg-red-50 rounded font-semibold text-xs flex items-center gap-1"><i class="fas fa-trash"></i> Padam</button>
+                    </div>
+                </div>`).join('');
         };
 
+        window.cetakLaporanFromList = (id) => { const idx = listRekod.findIndex(r => r.docId === id); if(idx !== -1) window.cetakLaporan(idx); };
         window.muatTurunPDFFromList = (id) => { const idx = listRekod.findIndex(r => r.docId === id); if(idx !== -1) window.muatTurunPDF(idx); };
+        
         window.editById = (id) => {
             const r = listRekod.find(x => x.docId === id); currentEditId = id;
             document.getElementById('tarikh').value = r.tarikh; window.kemaskiniHari();
             document.getElementById('minggu').value = r.minggu; document.getElementById('kumpulan').value = r.kumpulan;
             document.getElementById('catatan_disiplin').value = r.disiplin; document.getElementById('ulasan').value = r.ulasan;
             document.getElementById('namaPencatat').value = r.pencatat; document.getElementById('namaPenyemak').value = r.penyemak;
+            
             JSON.parse(r.kehadiran).forEach((val, i) => { if(document.getElementById(`th_${i}`)) document.getElementById(`th_${i}`).value = val; });
             JSON.parse(r.kebersihan).forEach((val, i) => { const rad = document.querySelector(`input[name="b_${i}"][value="${val}"]`); if(rad) rad.checked = true; });
             JSON.parse(r.peristiwa).forEach((val, i) => { if(document.getElementById(`slot_${i}`)) document.getElementById(`slot_${i}`).value = val; });
+            
             rekodStaf = JSON.parse(r.staf); pStaf();
+            
             const img1 = new Image(); img1.src = r.sign1; img1.onload = () => pads['signPad1'].ctx.drawImage(img1, 0, 0); pads['signPad1'].isSigned = true;
             if (r.sign2) { const img2 = new Image(); img2.src = r.sign2; img2.onload = () => pads['signPad2'].ctx.drawImage(img2, 0, 0); pads['signPad2'].isSigned = true; }
-            document.getElementById('statusEdit').classList.remove('hidden'); document.getElementById('btnHantar').innerHTML = "Kemaskini Laporan";
+            
+            document.getElementById('statusEdit').classList.remove('hidden'); document.getElementById('btnHantar').innerHTML = "KEMASKINI LAPORAN";
             window.tukarTab('borang'); window.scrollTo(0,0);
         };
 
-        window.batalEdit = () => { window.location.reload(); };
-        window.hapusRekod = async (id) => { if(confirm("Padam laporan ini selamanya dari Cloud?")) await deleteDoc(doc(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru', id)); };
+        window.batalEdit = () => { resetBorang(); };
+        window.hapusRekod = async (id) => { if(confirm("Padam rekod secara kekal?")) await deleteDoc(doc(db, 'artifacts', appIdInternal, 'public', 'data', 'laporan_guru', id)); };
 
-        // FINAL PDF GENERATOR (LANDSCAPE)
-        window.muatTurunPDF = (idx) => {
-            const r = listRekod[idx]; if(!r) return;
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'fixed inset-0 z-[200] bg-black/80 flex flex-col items-center justify-center text-white font-bold backdrop-blur-sm';
-            loadingDiv.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl mb-4"></i>MENJANA PDF LANDSCAPE...'; 
-            document.body.appendChild(loadingDiv);
-
+        // ================= TEMPLAT HTML UNTUK CETAK & PDF =================
+        const getReportHTML = (r, isPrint) => {
             const attendance = JSON.parse(r.kehadiran);
-            const clean = JSON.parse(r.kebersihan);
-            const events = JSON.parse(r.peristiwa);
-            const stAbsent = JSON.parse(r.staf);
+            const kebersihan = JSON.parse(r.kebersihan);
+            const peristiwa = JSON.parse(r.peristiwa);
+            const staf = JSON.parse(r.staf);
 
             let gS = 0, gT = 0, gH = 0;
-            const rows = attendance.map((tak, i) => {
+            const tableRows = attendance.map((tak, i) => {
                 const k = dataKelas[i]; const s = k.j; const h = s - tak; const p = s === 0 ? 0 : Math.round((h/s)*100);
                 gS += s; gT += tak; gH += h;
-                return `<tr><td style="border:1px solid #000; padding:4px;">${k.n}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${s}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${tak}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${h}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${p}%</td></tr>`;
+                return `<tr><td style="border:1px solid #000; padding:6px; font-size:10pt;">${k.n}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${s}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${tak}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${h}</td><td style="border:1px solid #000; padding:6px; text-align:center; font-size:10pt;">${p}%</td></tr>`;
             }).join('');
 
-            const htmlString = `
-                <div style="width: 1000px; padding: 25px; font-family: Arial, sans-serif; font-size: 10pt; background: #fff; line-height: 1.4;">
-                    <div style="text-align:center; border-bottom: 3px solid #1e3a8a; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px;">
-                        <img src="logo.png" style="height: 60px;" onerror="this.style.display='none'"/>
-                        <div><h2 style="margin:0; font-size: 18pt; color: #1e3a8a;">LAPORAN HARIAN GURU BERTUGAS</h2><h3 style="margin:0; font-size: 13pt;">SK PENDIDIKAN KHAS MIRI</h3></div>
+            const containerWidth = isPrint ? '100%' : '1050px';
+
+            return `
+                <div style="width: ${containerWidth}; padding: 20px; font-family: Arial, sans-serif; background: #fff; color: #000; line-height: 1.4; margin: 0 auto; box-sizing: border-box;">
+                    <div style="text-align:center; border-bottom: 3px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
+                        <table style="width:100%; border:none;">
+                            <tr>
+                                <td style="width:80px; text-align:left; border:none;">
+                                    <img src="logo.png" style="height: 70px;" onerror="this.style.display='none'"/>
+                                </td>
+                                <td style="text-align:center; border:none; vertical-align:middle;">
+                                    <h2 style="margin:0; font-size: 20pt; color: #1e3a8a;">LAPORAN HARIAN GURU BERTUGAS</h2>
+                                    <h3 style="margin:0; font-size: 14pt;">SK PENDIDIKAN KHAS MIRI</h3>
+                                </td>
+                                <td style="width:80px; border:none;"></td>
+                            </tr>
+                        </table>
                     </div>
-                    <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed;">
+
+                    <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
                         <tr>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; width:32%;">Tarikh</td>
-                            <td style="border:1px solid #000; padding:6px; width:18%;">${r.tarikh}</td>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6; width:32%;">Hari</td>
-                            <td style="border:1px solid #000; padding:6px; width:18%;">${r.hari}</td>
+                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6; width:15%;">Tarikh</td>
+                            <td style="border:1px solid #000; padding:8px; width:35%;">${r.tarikh}</td>
+                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6; width:15%;">Hari</td>
+                            <td style="border:1px solid #000; padding:8px; width:35%;">${r.hari}</td>
                         </tr>
                         <tr>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6;">Minggu Ke-</td>
-                            <td style="border:1px solid #000; padding:6px;">${r.minggu}</td>
-                            <td style="border:1px solid #000; padding:6px; font-weight:bold; background:#f3f4f6;">Kumpulan</td>
-                            <td style="border:1px solid #000; padding:6px;">${r.kumpulan}</td>
+                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6;">Kumpulan</td>
+                            <td style="border:1px solid #000; padding:8px;">${r.kumpulan}</td>
+                            <td style="border:1px solid #000; padding:8px; font-weight:bold; background:#f3f4f6;">Minggu</td>
+                            <td style="border:1px solid #000; padding:8px;">Minggu ${r.minggu}</td>
                         </tr>
                     </table>
-                    <div style="display: flex; gap: 20px;">
-                        <div style="flex: 1.2;">
-                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0; border-radius: 2px; font-size: 9pt;">DATA KEHADIRAN MURID</h4>
-                            <table style="width:100%; border-collapse: collapse; table-layout: fixed; font-size: 9pt;">
-                                <thead><tr style="background:#f3f4f6;"><th style="border:1px solid #000; padding:4px; text-align:left; width:36%;">Kelas</th><th style="border:1px solid #000; padding:4px; width:16%;">Jumlah</th><th style="border:1px solid #000; padding:4px; width:16%;">Tidak Hadir</th><th style="border:1px solid #000; padding:4px; width:16%;">Hadir</th><th style="border:1px solid #000; padding:4px; width:16%;">% Hadir</th></tr></thead>
-                                <tbody>${rows}</tbody>
-                                <tr style="font-weight:bold; background:#e5e7eb;"><td style="border:1px solid #000; padding:4px; text-align:left;">JUMLAH KESELURUHAN</td><td style="border:1px solid #000; padding:4px; text-align:center;">${gS}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${gT}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${gH}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${gS===0?0:Math.round((gH/gS)*100)}%</td></tr>
-                            </table>
-                        </div>
-                        <div style="flex: 0.8;">
-                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0; border-radius: 2px; font-size: 9pt;">KEBERSIHAN & DISIPLIN</h4>
-                            <table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">${kawasanBersih.map((kw, i) => `<tr><td style="border:1px solid #000; padding:6px; width:50%; font-weight:bold; background:#f9fafb;">${kw}</td><td style="border:1px solid #000; padding:6px;">${clean[i]}</td></tr>`).join('')}</table>
-                            <div style="border: 1px solid #000; padding:8px; background:#f9fafb; min-height:80px; margin-bottom: 15px; border-radius: 4px; font-size: 9pt;"><b>Disiplin Murid:</b><br>${r.disiplin || 'Disiplin murid terkawal.'}</div>
-                            <h4 style="background:#1e3a8a; color:#fff; padding:5px; margin:0 0 8px 0; border-radius: 2px; font-size: 9pt;">KEBERADAAN STAF</h4>
-                            <ul style="margin:0; padding-left:15px; font-size: 8pt;">${stAbsent.length > 0 ? stAbsent.map(s => `<li>${s.n} (${s.s})</li>`).join('') : '<li>Semua hadir.</li>'}</ul>
-                        </div>
-                    </div>
-                    <div class="html2pdf__page-break"></div>
-                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0; border-radius: 2px; font-size: 9pt;">CATATAN PERISTIWA SEMASA</h4>
-                    <table style="width:100%; border-collapse: collapse; table-layout: fixed;">${events.map((txt, i) => `<tr><td style="border:1px solid #000; padding:6px; width:20%; font-weight:bold; background:#f3f4f6; font-size: 8pt;">${slots[i]}</td><td style="border:1px solid #000; padding:6px; white-space:pre-wrap; font-size: 9pt;">${txt || '-'}</td></tr>`).join('')}</table>
-                    <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:15px 0 10px 0; border-radius: 2px; font-size: 9pt;">ULASAN / REFLEKSI</h4>
-                    <div style="border: 1px solid #000; padding:8px; min-height:50px; white-space: pre-wrap; border-radius: 4px; font-size: 9pt;">${r.ulasan || 'Tiada ulasan.'}</div>
-                    <table style="width:100%; margin-top:40px;">
-                        <tr><td style="width:50%; vertical-align:bottom;"><p style="margin:0; font-size: 8pt;">Dicatat Oleh:</p><img src="${r.sign1}" style="height:70px; margin: 5px 0;"/><br><strong><u>${r.pencatat}</u></strong></td><td style="width:50%; vertical-align:bottom;"><p style="margin:0; font-size: 8pt;">Disemak Oleh:</p>${r.sign2 ? `<img src="${r.sign2}" style="height:70px; margin: 5px 0;"/>` : '<div style="height:70px; border-bottom:1px solid #eee; width:80%;"></div>'}<br><strong><u>${r.penyemak || ''}</u></strong></td></tr>
+
+                    <table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 10px;">
+                        <tr>
+                            <td style="width: 55%; border: none; vertical-align: top; padding-right: 15px;">
+                                <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 11pt; text-align: center;">DATA KEHADIRAN MURID</h4>
+                                <table style="width:100%; border-collapse: collapse;">
+                                    <thead><tr style="background:#f3f4f6;">
+                                        <th style="border:1px solid #000; padding:6px; text-align:left; font-size:10pt;">Kelas</th>
+                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">Jumlah</th>
+                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">T.Hadir</th>
+                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">Hadir</th>
+                                        <th style="border:1px solid #000; padding:6px; font-size:10pt;">%</th>
+                                    </tr></thead>
+                                    <tbody>${tableRows}</tbody>
+                                    <tr style="font-weight:bold; background:#e5e7eb;">
+                                        <td style="border:1px solid #000; padding:6px; text-align:left;">JUMLAH</td>
+                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gS}</td>
+                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gT}</td>
+                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gH}</td>
+                                        <td style="border:1px solid #000; padding:6px; text-align:center;">${gS===0?0:Math.round((gH/gS)*100)}%</td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style="width: 45%; border: none; vertical-align: top; padding-left: 15px;">
+                                <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 11pt; text-align: center;">KEBERSIHAN KAWASAN SEKOLAH</h4>
+                                <table style="width:100%; border-collapse: collapse; margin-bottom: 15px;">
+                                    ${kawasanBersih.map((kw, i) => `<tr><td style="border:1px solid #000; padding:6px; width:65%; font-weight:bold; background:#f9fafb; font-size:10pt;">${kw}</td><td style="border:1px solid #000; padding:6px; font-size:10pt; text-align:center;">${kebersihan[i]}</td></tr>`).join('')}
+                                </table>
+                                <div style="border: 1px solid #000; padding:10px; background:#f9fafb; min-height:80px; margin-bottom: 15px; font-size:10pt;">
+                                    <strong>Catatan Disiplin Murid:</strong><br>${r.disiplin || 'Disiplin murid terkawal.'}
+                                </div>
+                                <h4 style="background:#1e3a8a; color:#fff; padding:6px; margin:0 0 8px 0; font-size: 11pt; text-align: center;">STAF TIDAK HADIR</h4>
+                                <div style="border: 1px solid #000; padding:10px; min-height:90px; font-size:10pt;">
+                                    <ul style="margin:0; padding-left:20px;">
+                                        ${staf.length > 0 ? staf.map(s => `<li style="margin-bottom:3px;">${s.n} (${s.s})</li>`).join('') : '<li>Tiada staf tidak hadir.</li>'}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="page-break-before: always; margin-top: 30px;"></div>
+
+                    <h4 style="background:#1e3a8a; color:#fff; padding:8px; margin:20px 0 10px 0; font-size: 11pt;">CATATAN PERISTIWA SEMASA</h4>
+                    <table style="width:100%; border-collapse: collapse;">
+                        ${peristiwa.map((txt, i) => `<tr><td style="border:1px solid #000; padding:10px; width:22%; font-weight:bold; background:#f3f4f6; font-size:10pt; vertical-align:top;">${slots[i]}</td><td style="border:1px solid #000; padding:10px; white-space:pre-wrap; font-size:10pt; vertical-align:top;">${txt || '-'}</td></tr>`).join('')}
+                    </table>
+
+                    <h4 style="background:#1e3a8a; color:#fff; padding:8px; margin:20px 0 10px 0; font-size: 11pt;">ULASAN / REFLEKSI GURU BERTUGAS</h4>
+                    <div style="border: 1px solid #000; padding:15px; min-height:80px; white-space: pre-wrap; font-size: 10pt; background: #fafafa;">${r.ulasan || 'Tiada ulasan tambahan.'}</div>
+
+                    <table style="width:100%; margin-top:50px; border: none; text-align: center;">
+                        <tr>
+                            <td style="width:50%; border: none; vertical-align:bottom;">
+                                <p style="margin:0 0 10px 0; font-size: 11pt; font-weight: bold;">Dicatat Oleh:</p>
+                                <img src="${r.sign1}" style="height:80px; margin: 0 auto;"/><br>
+                                <div style="border-top: 1px solid #000; width: 70%; margin: 5px auto 0 auto; padding-top: 5px;">
+                                    <strong style="font-size: 11pt;">${r.pencatat}</strong>
+                                </div>
+                            </td>
+                            <td style="width:50%; border: none; vertical-align:bottom;">
+                                <p style="margin:0 0 10px 0; font-size: 11pt; font-weight: bold;">Disemak Oleh:</p>
+                                ${r.sign2 ? `<img src="${r.sign2}" style="height:80px; margin: 0 auto;"/>` : '<div style="height:80px;"></div>'}
+                                <div style="border-top: 1px solid #000; width: 70%; margin: 5px auto 0 auto; padding-top: 5px;">
+                                    <strong style="font-size: 11pt;">${r.penyemak || '<span style="color:#fff;">_</span>'}</strong>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>`;
+        };
 
-            const opt = { margin: 10, filename: `LAPORAN_SKPK_${r.tarikh}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, windowWidth: 1050 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: ['css', 'legacy'] } };
-            html2pdf().set(opt).from(htmlString).save().then(() => document.body.removeChild(loadingDiv));
+        // CETAK TERUS SELAMAT (TIDAK MENGGUNAKAN WINDOW.OPEN YANG MENYEBABKAN CRASH)
+        window.cetakLaporan = (idx) => {
+            const r = listRekod[idx]; if(!r) return;
+            const printContent = getReportHTML(r, true);
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = printContent;
+            window.print();
+        };
+
+        // MUAT TURUN PDF (DIOPTIMUMKAN UNTUK KELAJUAN)
+        window.muatTurunPDF = (idx) => {
+            const r = listRekod[idx]; if(!r) return;
+            const loader = document.createElement('div');
+            loader.className = 'fixed inset-0 z-[200] bg-black/80 flex flex-col items-center justify-center text-white font-bold';
+            loader.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl mb-4"></i>MENJANA PDF... SILA TUNGGU...'; 
+            document.body.appendChild(loader);
+
+            const htmlContent = getReportHTML(r, false);
+            
+            // Bypass Iframe: Lukis DOM terus untuk kelajuan 50% lebih pantas
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.top = '-10000px';
+            tempDiv.style.left = '0';
+            tempDiv.innerHTML = htmlContent;
+            document.body.appendChild(tempDiv);
+            
+            const opt = { 
+                margin: [10, 10, 10, 10], 
+                filename: `LAPORAN_SKPK_${r.tarikh}.pdf`, 
+                image: { type: 'jpeg', quality: 0.95 }, 
+                html2canvas: { 
+                    scale: 1.5, // Diturunkan dari 2.0 untuk mempercepatkan proses. Masih HD untuk cetakan
+                    useCORS: true,
+                    logging: false // Matikan log untuk kurangkan beban CPU
+                }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, 
+                pagebreak: { mode: ['css', 'legacy'] } 
+            };
+
+            // Beri sedikit masa (150ms) untuk DOM rending sepenuhnya sebelum snapshot
+            setTimeout(() => {
+                html2pdf().set(opt).from(tempDiv).save().then(() => {
+                    document.body.removeChild(tempDiv);
+                    document.body.removeChild(loader);
+                }).catch(err => { 
+                    alert("Ralat semasa memproses fail PDF: " + err); 
+                    document.body.removeChild(tempDiv);
+                    document.body.removeChild(loader);
+                });
+            }, 150);
         };
 
         document.addEventListener('DOMContentLoaded', init);
