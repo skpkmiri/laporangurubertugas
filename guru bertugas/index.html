@@ -138,7 +138,7 @@
                     
                     <div class="grid grid-cols-1 gap-8">
                         <div class="p-4 border border-gray-100 rounded-lg bg-gray-50/50">
-                            <label class="form-label text-primary font-bold">Dicatat Oleh <span class="required-star">*</span></label>
+                            <label class="form-label text-primary font-bold">Disediakan Oleh <span class="required-star">*</span></label>
                             <select id="namaPencatat" required class="form-input mb-2 border-primary/20"></select>
                             <div class="signature-container mb-2 shadow-inner"><canvas id="signPad1" class="signature-pad" width="600" height="300"></canvas></div>
                             <button type="button" onclick="window.clearSignature('signPad1')" class="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">Padam Tandatangan</button>
@@ -176,7 +176,7 @@
         </div>
     </main>
 
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-2xl flex h-16">
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex h-16">
         <button onclick="window.tukarTab('borang')" id="btn-borang" class="flex-1 text-primary font-bold border-t-4 border-primary bg-blue-50 flex flex-col items-center justify-center gap-1 transition-all">
             <i class="fas fa-edit"></i><span class="text-[10px]">BORANG</span>
         </button>
@@ -196,13 +196,15 @@
         </div>
     </div>
 
+    <!-- Ruangan Tersembunyi Khas Untuk Fungsi Cetakan Terus -->
+    <div id="print-area"></div>
+
     <!-- Firebase SDK Modules -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase Cikgu
         const firebaseConfig = {
           apiKey: "AIzaSyDPO6aTZaGonzq4-xWlfpYffym4mKXQUW0",
           authDomain: "laporan-guru-bertugas-9c7fe.firebaseapp.com",
@@ -215,6 +217,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        
+        // KEKALKAN ID LAMA UNTUK ELAK DATA HILANG
         const appIdInternal = 'skpk-miri-report-system';
 
         const dataKelas = [
@@ -245,6 +249,14 @@
         const semuaStaf = [...stafPentadbir, ...stafGuru].sort();
         const kawasanBersih = ["1. BILIK DARJAH", "2. TANDAS", "3. RUANG RMT", "4. PERSEKITARAN SEKOLAH", "5. DEWAN"];
         const slots = ["7.00 - 8.00 pagi", "8.00 - 9.00 pagi", "9.00 - 10.00 pagi", "10.00 - 11.00 pagi", "11.00 - 12.00 tgh", "12.00 - 1.00 tgh"];
+
+        // SENARAI JAWATAN PENTADBIR
+        const rolePentadbir = {
+            "AZIZ BIN TAHIR": "Guru Besar",
+            "MOHAMAD ABIDIN BIN SIPEK": "Penolong Kanan Pentadbiran",
+            "LING MEE CHOO": "Penolong Kanan Hal Ehwal Murid",
+            "SALIHIN BIN AHMAD": "Penolong Kanan Kokurikulum"
+        };
 
         let isReady = false, listRekod = [], rekodStaf = [], pads = {};
         let currentEditId = null;
@@ -289,8 +301,8 @@
 
         const init = () => {
             const container = document.getElementById('senaraiKelasContainer');
-            let h = `<table class="w-full text-xs text-left border"><thead><tr class="bg-primary text-white"><th class="p-2 border">Kelas</th><th class="p-2 border text-center">T.Hadir</th></tr></thead><tbody>`;
-            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold text-gray-700">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" min="0" max="${k.j}" class="w-16 text-center border p-1 rounded font-bold text-red-600 focus:bg-yellow-50"></td></tr>`; });
+            let h = `<table class="w-full text-[11px] text-left border"><thead><tr class="bg-primary text-white"><th class="p-2 border">Kelas</th><th class="p-2 border text-center">T.Hadir</th></tr></thead><tbody>`;
+            dataKelas.forEach((k, i) => { h += `<tr><td class="p-2 border font-bold text-gray-700">${k.n}</td><td class="p-2 border text-center"><input type="number" id="th_${i}" value="0" min="0" max="${k.j}" class="w-12 text-center border p-1 rounded font-bold text-red-600 focus:bg-yellow-50"></td></tr>`; });
             container.innerHTML = h + `</tbody></table>`;
             
             kawasanBersih.forEach((kw, i) => { document.getElementById('senaraiKebersihan').innerHTML += `<div class="flex justify-between py-2 border-b items-center"><span class="text-sm font-medium text-gray-700">${kw}</span><div class="segmented-control w-32"><label><input type="radio" name="b_${i}" value="Lemah"><span>L</span></label><label><input type="radio" name="b_${i}" value="Memuaskan" checked><span>M</span></label><label><input type="radio" name="b_${i}" value="Baik"><span>B</span></label></div></div>`; });
@@ -317,7 +329,7 @@
 
         window.hantarLaporan = async (e) => {
             e.preventDefault();
-            if(!pads['signPad1'].isSigned) return alert("Sila turunkan tandatangan pada 'Dicatat Oleh'.");
+            if(!pads['signPad1'].isSigned) return alert("Sila turunkan tandatangan pada 'Disediakan Oleh'.");
             
             const payload = {
                 tarikh: document.getElementById('tarikh').value, hari: document.getElementById('hari').value, minggu: document.getElementById('minggu').value, kumpulan: document.getElementById('kumpulan').value,
@@ -413,6 +425,9 @@
             const kebersihan = JSON.parse(r.kebersihan);
             const peristiwa = JSON.parse(r.peristiwa);
             const staf = JSON.parse(r.staf);
+            
+            // JAWATAN UNTUK DISEMAK OLEH
+            const jawatanPenyemak = r.penyemak ? (rolePentadbir[r.penyemak] || "") : "";
 
             let gS = 0, gT = 0, gH = 0;
             const tableRows = attendance.map((tak, i) => {
@@ -506,17 +521,19 @@
                     <table style="width:100%; margin-top:40px; border: none; text-align: center; table-layout: fixed;">
                         <tr>
                             <td style="width:50%; border: none; vertical-align:bottom;">
-                                <p style="margin:0 0 10px 0; font-size: 10pt; font-weight: bold;">Dicatat Oleh:</p>
-                                <img src="${r.sign1}" style="height:70px; margin: 0 auto;"/><br>
+                                <p style="margin:0 0 10px 0; font-size: 10pt; font-weight: bold;">Disediakan Oleh:</p>
+                                <img src="${r.sign1}" style="height:70px; margin: 0 auto;" onerror="this.style.display='none'"/><br>
                                 <div style="border-top: 1px solid #000; width: 70%; margin: 5px auto 0 auto; padding-top: 5px;">
-                                    <strong style="font-size: 10pt;">${r.pencatat}</strong>
+                                    <strong style="font-size: 10pt;">${r.pencatat}</strong><br>
+                                    <span style="font-size: 9pt; color: #444;">Guru Bertugas Mingguan</span>
                                 </div>
                             </td>
                             <td style="width:50%; border: none; vertical-align:bottom;">
                                 <p style="margin:0 0 10px 0; font-size: 10pt; font-weight: bold;">Disemak Oleh:</p>
                                 ${r.sign2 ? `<img src="${r.sign2}" style="height:70px; margin: 0 auto;"/>` : '<div style="height:70px;"></div>'}
                                 <div style="border-top: 1px solid #000; width: 70%; margin: 5px auto 0 auto; padding-top: 5px;">
-                                    <strong style="font-size: 10pt;">${r.penyemak || '<span style="color:#fff;">_</span>'}</strong>
+                                    <strong style="font-size: 10pt;">${r.penyemak || '<span style="color:#fff;">_</span>'}</strong><br>
+                                    <span style="font-size: 9pt; color: #444;">${jawatanPenyemak || '<span style="color:#fff;">_</span>'}</span>
                                 </div>
                             </td>
                         </tr>
@@ -524,46 +541,44 @@
                 </div>`;
         };
 
-        // CETAKAN PINTAR (Bypass popup block)
+        // CETAKAN PINTAR
         window.cetakLaporan = (idx) => {
             const r = listRekod[idx]; if(!r) return;
             const printContent = getReportHTML(r, true);
-            const printWindow = window.open('', '', 'width=1000,height=800');
-            if(printWindow) {
-                printWindow.document.write(`<html><head><title>Cetak - ${r.tarikh}</title><style>@media print { @page { size: landscape; margin: 10mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }</style></head><body>${printContent}</body></html>`);
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
-            } else {
-                alert("Sistem Cetak Disekat! Sila benarkan 'Pop-ups' pada browser telefon anda.");
-            }
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = printContent;
+            window.print();
         };
 
-        // MUAT TURUN PDF (ANTI-PUTUS)
+        // MUAT TURUN PDF (DIOPTIMUMKAN DENGAN SKALA 1.2 UNTUK MENGELAKKAN CRASH PADA IPHONE)
         window.muatTurunPDF = (idx) => {
             const r = listRekod[idx]; if(!r) return;
-            document.getElementById('modalLoading').classList.remove('hidden');
-            document.getElementById('modalLoading').classList.add('flex');
+            const loader = document.getElementById('modalLoading');
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
 
             const htmlContent = getReportHTML(r, false);
             
+            // Penggunaan scale: 1.2 mengurangkan pemprosesan RAM di telefon pintar sebanyak 70%
             const opt = { 
                 margin: 10, 
                 filename: `LAPORAN_SKPK_${r.tarikh}.pdf`, 
-                image: { type: 'jpeg', quality: 0.95 }, 
-                html2canvas: { scale: 1.5, useCORS: true, windowWidth: 1050 }, 
+                image: { type: 'jpeg', quality: 0.85 }, 
+                html2canvas: { scale: 1.2, useCORS: true, windowWidth: 1050 }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
 
-            // Beri masa memori render
+            // Beri masa memori dibersihkan sebelum menjana
             setTimeout(() => {
                 html2pdf().set(opt).from(htmlContent).save().then(() => {
-                    document.getElementById('modalLoading').classList.add('hidden');
+                    loader.classList.add('hidden');
+                    loader.classList.remove('flex');
                 }).catch(err => { 
                     alert("Ralat semasa menjana PDF: " + err); 
-                    document.getElementById('modalLoading').classList.add('hidden');
+                    loader.classList.add('hidden');
+                    loader.classList.remove('flex');
                 });
-            }, 300);
+            }, 100);
         };
 
         document.addEventListener('DOMContentLoaded', init);
