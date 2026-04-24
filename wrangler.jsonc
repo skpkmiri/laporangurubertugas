@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "laporangurubertugas",
+  "compatibility_date": "2026-04-24",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "guru bertugas"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
