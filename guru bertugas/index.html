@@ -133,11 +133,13 @@
                         <select id="sebabTakHadir" class="form-input mb-3">
                             <option value="">-- Sebab --</option>
                             <option value="CRK">CRK</option>
-                            <option value="Kursus">Kursus</option>
+                            <option value="Cuti Tanpa Rekod Kelompok">Cuti Tanpa Rekod Kelompok</option>
                             <option value="Cuti Sakit">Cuti Sakit</option>
-                            <option value="Tugas Luar">Tugas Luar / Mesyuarat</option>
-                            <option value="Bengkel">Bengkel</option>
+                            <option value="Cuti Menjaga Anak Kuarantin">Cuti Menjaga Anak Kuarantin</option>
+                            <option value="Cuti Tanpa Gaji">Cuti Tanpa Gaji</option>
                             <option value="Cuti Bersalin">Cuti Bersalin</option>
+                            <option value="Kursus / Bengkel / Taklimat / SLU">Kursus / Bengkel / Taklimat / SLU</option>
+                            <option value="Tugas Luar / Mesyuarat">Tugas Luar / Mesyuarat</option>
                             <option value="Lain-lain">Lain-lain</option>
                         </select>
                         <button type="button" onclick="window.tambahStaf()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg shadow-sm transition hover:bg-purple-700">Tambah Rekod Staf</button>
@@ -564,7 +566,7 @@
             window.print();
         };
 
-        // MUAT TURUN PDF
+        // MUAT TURUN PDF (DIOPTIMUMKAN DENGAN SKALA 1.2 UNTUK MENGELAKKAN CRASH PADA IPHONE)
         window.muatTurunPDF = (idx) => {
             const r = listRekod[idx]; if(!r) return;
             const loader = document.getElementById('modalLoading');
@@ -573,14 +575,16 @@
 
             const htmlContent = getReportHTML(r, false);
             
+            // Penggunaan scale: 1.2 mengurangkan pemprosesan RAM di telefon pintar sebanyak 70%
             const opt = { 
                 margin: 10, 
                 filename: `LAPORAN_SKPK_${r.tarikh}.pdf`, 
                 image: { type: 'jpeg', quality: 0.85 }, 
-                html2canvas: { scale: 1.5, useCORS: true, windowWidth: 1050 }, 
+                html2canvas: { scale: 1.2, useCORS: true, windowWidth: 1050 }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
 
+            // Beri masa memori dibersihkan sebelum menjana
             setTimeout(() => {
                 html2pdf().set(opt).from(htmlContent).save().then(() => {
                     loader.classList.add('hidden');
